@@ -1,0 +1,366 @@
+import React, { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  Dimensions,
+  Platform,
+  KeyboardAvoidingView,
+  Alert,
+  Image,
+  TextInput,
+} from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import AmmarliInput from '../../components/AmmarliInput';
+import { useDriverStore } from '../../src/store/useDriverStore';
+
+const { width } = Dimensions.get('window');
+
+const COLORS = {
+  primary:   '#003366',
+  secondary: '#F3CD0D',
+  white:     '#FFFFFF',
+  textGray:  '#64748B',
+  border:    '#E2E8F0',
+};
+
+// ─── جميع العلامات التجارية ───────────────────────────────────────────────────
+
+const ALL_BRANDS = [
+  { id: 'Ifri',          name: 'Ifri',          logo: require('../../assets/images/brands/ifri.png')           },
+  { id: 'Guedila',       name: 'Guedila',       logo: require('../../assets/images/brands/guedila.png')        },
+  { id: 'Saida',         name: 'Saida',         logo: require('../../assets/images/brands/saida.png')          },
+  { id: 'Lalla Khedidja',name: 'L.Khedidja',   logo: require('../../assets/images/brands/lalla-khedidja.png') },
+  { id: 'Mansourah',     name: 'Mansourah',     logo: require('../../assets/images/brands/mansourah.png')      },
+  { id: 'Toudja',        name: 'Toudja',        logo: require('../../assets/images/brands/toudja.png')         },
+  { id: 'Youkous',       name: 'Youkous',       logo: require('../../assets/images/brands/youkous.png')        },
+  { id: 'Messerghine',   name: 'Messerghine',   logo: require('../../assets/images/brands/messerghine.png')    },
+  { id: 'Texanna',       name: 'Texanna',       logo: require('../../assets/images/brands/texanna.png')        },
+  { id: 'Hayat',         name: 'Hayat',         logo: require('../../assets/images/brands/hayat.jpg')          },
+];
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+/** بطاقة اختيار نوع المركبة — تدعم صورة أو أيقونة */
+const VehicleCard = ({ title, image, active, onPress }: any) => (
+  <TouchableOpacity
+    style={[styles.selectionCard, active && styles.selectionCardActive]}
+    onPress={onPress}
+    activeOpacity={0.8}
+  >
+    <Image source={image} style={styles.vehicleImage} resizeMode="contain" />
+    <Text style={[styles.selectionTitle, active && styles.selectionTitleActive]}>{title}</Text>
+  </TouchableOpacity>
+);
+
+/** بطاقة اختيار نوع المياه — صورة + نص */
+const TypeChip = ({ label, imageSource, active, onPress }: any) => (
+  <TouchableOpacity
+    style={[styles.chip, active && styles.chipActive]}
+    onPress={onPress}
+    activeOpacity={0.8}
+  >
+    <Image
+      source={imageSource}
+      style={{ width: 44, height: 44, marginBottom: 6, opacity: active ? 1 : 0.4 }}
+      resizeMode="contain"
+    />
+    <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
+  </TouchableOpacity>
+);
+
+// ─── Main Screen ─────────────────────────────────────────────────────────────
+
+const DriverRegistrationScreen = () => {
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+
+  const [vehicleType, setVehicleType] = useState<'tanker' | 'bottled'>('tanker');
+  const [waterType,   setWaterType]   = useState('spring');
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [capacity,    setCapacity]    = useState('5000');
+
+  const [fullName,  setFullName]  = useState('');
+  const [phone,     setPhone]     = useState('');
+  const [password,  setPassword]  = useState('');
+  const [license,   setLicense]   = useState('');
+
+  const phoneRef    = useRef<TextInput>(null);
+  const passRef     = useRef<TextInput>(null);
+  const licenseRef  = useRef<TextInput>(null);
+  const capacityRef = useRef<TextInput>(null);
+
+  const registerDriver = useDriverStore(s => s.registerDriver);
+
+  const toggleBrand = (id: string) => {
+    setSelectedBrands(prev =>
+      prev.includes(id) ? prev.filter(b => b !== id) : [...prev, id]
+    );
+  };
+
+  const handleRegister = () => {
+    if (!fullName.trim() || !phone.trim() || !password.trim() || !license.trim()) {
+      Alert.alert('بيانات ناقصة', 'يرجى تعبئة جميع الحقول قبل المتابعة.');
+      return;
+    }
+    if (vehicleType === 'bottled' && selectedBrands.length === 0) {
+      Alert.alert('اختر علامة تجارية', 'يرجى اختيار علامة تجارية واحدة على الأقل.');
+      return;
+    }
+
+    registerDriver({
+      name:       fullName.trim(),
+      phone:      phone.trim(),
+      password:   password,
+      truckPlate: license.trim(),
+      driverType: vehicleType === 'bottled' ? 'Bottled' : 'Tanker',
+      waterType:  vehicleType === 'tanker'  ? waterType  : undefined,
+      brands:     vehicleType === 'bottled' ? selectedBrands : undefined,
+      capacity:   vehicleType === 'tanker'  ? Number(capacity) : undefined,
+    });
+
+    router.replace('/(driver)/(tabs)' as any);
+  };
+
+  // ── محتوى النموذج المشترك ────────────────────────────────────────────────
+  const FormContent = (
+    <>
+      {/* المعلومات الأساسية */}
+      <View style={styles.formSection}>
+        <AmmarliInput label="الاسم الكامل"        placeholder="أدخل اسمك الكامل"            iconName="person-outline"      value={fullName}  onChangeText={setFullName} />
+        <AmmarliInput label="رقم الهاتف"          placeholder="05XX XXX XXX"                iconName="call-outline"        value={phone}     onChangeText={setPhone}    keyboardType="phone-pad" />
+        <AmmarliInput label="كلمة المرور"         placeholder="أدخل كلمة المرور"            iconName="lock-closed-outline" value={password}  onChangeText={setPassword} secureTextEntry isPassword />
+        <AmmarliInput label="رقم لوحة الترخيص"   placeholder="رقم اللوحة (مثلاً: 12345-120-05)" iconName="card-outline"   value={license}   onChangeText={setLicense} />
+      </View>
+
+      {/* اختيار نوع المركبة */}
+      <Text style={styles.sectionLabel}>فئة المركبة</Text>
+      <View style={styles.row}>
+        <VehicleCard
+          title="توصيل عبوات"
+          image={require('../../assets/images/bottled_icon.png')}
+          active={vehicleType === 'bottled'}
+          onPress={() => setVehicleType('bottled')}
+        />
+        <VehicleCard
+          title="شاحنة صهريج"
+          image={require('../../assets/images/traker.png')}
+          active={vehicleType === 'tanker'}
+          onPress={() => setVehicleType('tanker')}
+        />
+      </View>
+
+      {/* ── قسم العبوات: اختيار العلامات التجارية ── */}
+      {vehicleType === 'bottled' && (
+        <View style={styles.dynamicSection}>
+          <Text style={styles.sectionLabel}>
+            اختر العلامات التجارية المتوفرة لديك
+          </Text>
+          {selectedBrands.length > 0 && (
+            <Text style={styles.selectedCount}>
+              {selectedBrands.length} علامة مختارة
+            </Text>
+          )}
+          <View style={styles.brandGrid}>
+            {ALL_BRANDS.map(brand => {
+              const active = selectedBrands.includes(brand.id);
+              return (
+                <TouchableOpacity
+                  key={brand.id}
+                  style={[styles.brandCard, active && styles.brandCardActive]}
+                  onPress={() => toggleBrand(brand.id)}
+                  activeOpacity={0.75}
+                >
+                  <Image source={brand.logo} style={styles.brandLogo} resizeMode="contain" />
+                  <Text style={[styles.brandName, active && styles.brandNameActive]}>
+                    {brand.name}
+                  </Text>
+                  {active && (
+                    <View style={styles.checkBadge}>
+                      <Ionicons name="checkmark" size={12} color={COLORS.white} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
+
+      {/* ── قسم الصهريج: نوع المياه والسعة ── */}
+      {vehicleType === 'tanker' && (
+        <View style={styles.dynamicSection}>
+          <Text style={styles.sectionLabel}>نوع المياه</Text>
+          <View style={styles.waterTypeRow}>
+            <TypeChip
+              label="مياه بناء"
+              imageSource={require('../../assets/images/ashghal-icon.png')}
+              active={waterType === 'construction'}
+              onPress={() => setWaterType('construction')}
+            />
+            <TypeChip
+              label="مياه آبار"
+              imageSource={require('../../assets/images/well-water-icon.png')}
+              active={waterType === 'well'}
+              onPress={() => setWaterType('well')}
+            />
+            <TypeChip
+              label="الينابيع"
+              imageSource={require('../../assets/images/spring-water-icon.png')}
+              active={waterType === 'spring'}
+              onPress={() => setWaterType('spring')}
+            />
+          </View>
+          <View style={{ marginTop: 20 }}>
+            <AmmarliInput
+              label="سعة الخزان (لتر)"
+              placeholder="5000"
+              iconName="water-outline"
+              keyboardType="numeric"
+              value={capacity}
+              onChangeText={setCapacity}
+            />
+          </View>
+        </View>
+      )}
+
+      {/* زر الإنشاء */}
+      <TouchableOpacity style={styles.submitButton} activeOpacity={0.8} onPress={handleRegister}>
+        <Text style={styles.submitButtonText}>إنشاء حساب جديد</Text>
+        <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.footerLink} onPress={() => router.push('/(driver)/login')}>
+        <Text style={styles.footerText}>
+          لديك حساب بالفعل؟{' '}
+          <Text style={styles.footerBold}>تسجيل الدخول</Text>
+        </Text>
+      </TouchableOpacity>
+    </>
+  );
+
+  return (
+    <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? insets.top : 0 }]}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} translucent={false} />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-forward" size={28} color={COLORS.primary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>انضم إلينا كسائق</Text>
+        <View style={{ width: 44 }} />
+      </View>
+
+      {Platform.OS === 'ios' ? (
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 30 }]}
+            keyboardShouldPersistTaps="always"
+          >
+            {FormContent}
+          </ScrollView>
+        </KeyboardAvoidingView>
+      ) : (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 30 }]}
+          keyboardShouldPersistTaps="always"
+        >
+          {FormContent}
+        </ScrollView>
+      )}
+    </View>
+  );
+};
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const CARD_W = (width - 65) / 2;
+
+const styles = StyleSheet.create({
+  container:    { flex: 1, backgroundColor: COLORS.white },
+  header:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, height: 60 },
+  headerTitle:  { fontSize: 18, fontWeight: '800', color: COLORS.primary },
+  backButton:   { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  scrollContent: { paddingHorizontal: 25, paddingTop: 10 },
+  formSection:  { marginBottom: 10 },
+  sectionLabel: { fontSize: 15, fontWeight: '800', color: COLORS.primary, marginBottom: 12, textAlign: 'right', marginTop: 15 },
+
+  // Vehicle cards
+  row:                  { flexDirection: 'row-reverse', justifyContent: 'space-between', marginBottom: 10 },
+  selectionCard:        { width: CARD_W, height: 120, borderRadius: 20, borderWidth: 2, borderColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF', overflow: 'hidden' },
+  selectionCardActive:  { borderColor: COLORS.secondary, shadowColor: COLORS.secondary, shadowOpacity: 0.15, elevation: 5 },
+  vehicleImage:         { width: 64, height: 64 },
+  selectionTitle:       { fontSize: 14, fontWeight: '700', color: COLORS.textGray, marginTop: 8 },
+  selectionTitleActive: { color: COLORS.primary, fontWeight: '900' },
+
+  // Dynamic section
+  dynamicSection: { marginTop: 5, marginBottom: 5 },
+  selectedCount:  { fontSize: 12, fontWeight: '700', color: COLORS.secondary, textAlign: 'right', marginBottom: 10, marginTop: -8 },
+
+  // Brand grid — 3 في الصف
+  brandGrid: {
+    flexDirection: 'row-reverse',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 10,
+  },
+  brandCard: {
+    width: (width - 80) / 3,
+    paddingVertical: 12,
+    paddingHorizontal: 6,
+    borderRadius: 16,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    position: 'relative',
+  },
+  brandCardActive: { borderColor: COLORS.primary, backgroundColor: COLORS.white, elevation: 3, shadowColor: COLORS.primary, shadowOpacity: 0.1, shadowRadius: 6 },
+  brandLogo:       { width: 48, height: 48, marginBottom: 6 },
+  brandName:       { fontSize: 11, fontWeight: '700', color: COLORS.textGray, textAlign: 'center' },
+  brandNameActive: { color: COLORS.primary, fontWeight: '900' },
+  checkBadge: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Tanker chips
+  waterTypeRow: { flexDirection: 'row-reverse', gap: 10 },
+  chip: {
+    flex: 1,
+    height: 85,
+    borderRadius: 16,
+    backgroundColor: '#E2E8F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'column',
+    paddingVertical: 10,
+  },
+  chipActive:     { backgroundColor: COLORS.secondary },
+  chipText:       { fontSize: 12, fontWeight: '700', color: COLORS.primary, textAlign: 'center' },
+  chipTextActive: { fontWeight: '900' },
+
+  // Submit
+  submitButton:     { flexDirection: 'row', height: 60, backgroundColor: COLORS.secondary, borderRadius: 30, justifyContent: 'center', alignItems: 'center', marginTop: 30, gap: 10, elevation: 5 },
+  submitButtonText: { fontSize: 18, fontWeight: '900', color: COLORS.primary },
+  footerLink:       { alignItems: 'center', marginTop: 20, marginBottom: 10 },
+  footerText:       { fontSize: 14, color: COLORS.textGray },
+  footerBold:       { fontWeight: '800', color: COLORS.primary },
+});
+
+export default DriverRegistrationScreen;

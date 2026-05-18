@@ -1,0 +1,413 @@
+import React, { useState, useMemo, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  TextInput,
+  Dimensions,
+  Platform,
+  KeyboardAvoidingView
+} from 'react-native';
+import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useCustomerStore } from '../../src/store/useCustomerStore';
+import * as Haptics from 'expo-haptics';
+import ErrorBoundary from '../../components/ErrorBoundary';
+import ScreenContainer, { MIN_BOTTOM_INSET } from '../../components/ScreenContainer';
+
+const { width } = Dimensions.get('window');
+
+const COLORS = {
+  primaryBlue: '#003366', // Deep Navy
+  accentYellow: '#F3CD0D', // Vibrant Yellow
+  white: '#FFFFFF',
+  background: '#F8FAFC',
+  textDark: '#333333',
+  textSecondary: '#64748B',
+  border: '#E2E8F0',
+};
+
+const BOTTLE_PRICES: any = {
+  '0.5L': 150,
+  '1.5L': 250,
+  '5L': 180,
+};
+
+export default function OrderDetailsScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  
+  const BRANDS = [
+    { id: 'Guedila', name: 'قديلا', color: '#1A4C8A', logo: require('../../assets/images/brands/guedila.png') },
+    { id: 'Ifri', name: 'إفري', color: '#0A829D', logo: require('../../assets/images/brands/ifri.png') },
+    { id: 'Saida', name: 'سعيدة', color: '#E02020', logo: require('../../assets/images/brands/saida.png') },
+    { id: 'Lalla', name: 'للا خديجة', color: '#27AE60', logo: require('../../assets/images/brands/lalla-khedidja.png') },
+    { id: 'Mansourah', name: 'منصورة', color: '#8E44AD', logo: require('../../assets/images/brands/mansourah.png') },
+    { id: 'Hayat', name: 'حياة', color: '#F39C12', logo: require('../../assets/images/brands/hayat.jpg') },
+    { id: 'Messerghine', name: 'مسرغين', color: '#16A085', logo: require('../../assets/images/brands/messerghine.png') },
+    { id: 'Texanna', name: 'تيكسانا', color: '#2980B9', logo: require('../../assets/images/brands/texanna.png') },
+    { id: 'Toudja', name: 'توجة', color: '#C0392B', logo: require('../../assets/images/brands/toudja.png') },
+    { id: 'Youkous', name: 'يوكوس', color: '#34495E', logo: require('../../assets/images/brands/youkous.png') },
+  ];
+
+  const [selectedBrand, setSelectedBrand] = useState('Guedila');
+  
+  // Dynamic cart state based on BRANDS array
+  const [cart, setCart] = useState(() => {
+    const initialCart: any = {};
+    BRANDS.forEach(b => {
+      initialCart[b.id] = { '0.5L': 0, '1.5L': 0, '5L': 0 };
+    });
+    return initialCart;
+  });
+
+  // useMemo for efficient price calculation — avoids extra state + useEffect re-renders
+  const totalPrice = useMemo(() => {
+    let total = 0;
+    Object.keys(cart).forEach(brand => {
+      const items = cart[brand];
+      total += (items['0.5L'] * BOTTLE_PRICES['0.5L']) +
+               (items['1.5L'] * BOTTLE_PRICES['1.5L']) +
+               (items['5L'] * BOTTLE_PRICES['5L']);
+    });
+    return total;
+  }, [cart]);
+
+  const updateQuantity = useCallback((size: string, delta: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setCart((prev: any) => {
+      const currentQty = prev[selectedBrand][size];
+      return {
+        ...prev,
+        [selectedBrand]: {
+          ...prev[selectedBrand],
+          [size]: Math.max(0, currentQty + delta)
+        }
+      };
+    });
+  }, [selectedBrand]);
+
+  const handleMapPress = () => {
+    router.push('/(customer)/location-picker');
+  };
+
+  const createOrder = useCustomerStore((s) => s.createOrder);
+
+  const handleOrderNow = () => {
+    if (totalPrice === 0) return; // Don't order if cart is empty
+    
+    const orderItems: any[] = [];
+    Object.keys(cart).forEach(brand => {
+      Object.keys(cart[brand]).forEach(size => {
+        const qty = cart[brand][size];
+        if (qty > 0) {
+          orderItems.push({
+            brand,
+            size,
+            qty,
+            unitPrice: BOTTLE_PRICES[size]
+          });
+        }
+      });
+    });
+
+    createOrder({
+      id: Math.floor(Math.random() * 100000),
+      type: 'Bottled',
+      status: 'searching',
+      price: totalPrice,
+      locationName: 'موقع التوصيل الحالي',
+      items: orderItems,
+    });
+    router.push('/(customer)/searching-driver');
+  };
+
+  const handleSchedule = () => {
+    router.push('/(customer)/schedule-order');
+  };
+
+  const getBrandName = (id: string) => {
+    return BRANDS.find(b => b.id === id)?.name || id;
+  };
+
+  return (
+    // ScreenContainer يتولى:
+    // - paddingTop = insets.top (منطقة Status Bar)
+    // - StatusBar مع الألوان الصحيحة
+    // - edges=['top'] فقط لأن الـ Footer المطلق يتعامل مع الـ bottom بنفسه
+    <ScreenContainer
+      edges={['top']}
+      backgroundColor={COLORS.primaryBlue}
+      statusBarStyle="light-content"
+      statusBarColor={COLORS.primaryBlue}
+    >
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.headerIcon} onPress={() => router.back()}>
+          <Ionicons name="chevron-forward" size={28} color={COLORS.white} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>اطلب مياه معبأة</Text>
+        <View style={styles.headerIcon} />
+      </View>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1, backgroundColor: COLORS.background }}
+      >
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { paddingBottom: 200 + insets.bottom }]}>
+          
+          {/* Map Preview Section */}
+          <TouchableOpacity style={styles.mapCard} activeOpacity={0.9} onPress={handleMapPress}>
+            <View style={styles.mapImageContainer}>
+              <Image 
+                source={{ uri: 'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/3.0588,36.7538,13/600x200?access_token=YOUR_TOKEN' }}
+                style={styles.mapImage}
+                resizeMode="cover"
+              />
+              <View style={styles.mapPinOverlay}>
+                <Ionicons name="location" size={40} color={COLORS.accentYellow} />
+              </View>
+            </View>
+            <View style={styles.addressBar}>
+              <Text style={styles.addressText}>حدد موقع التوصيل</Text>
+              <Feather name="map" size={20} color={COLORS.primaryBlue} />
+            </View>
+          </TouchableOpacity>
+
+          {/* Brand Selection */}
+          <Text style={styles.sectionTitle}>اختر العلامة التجارية</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.brandScroll}>
+            {BRANDS.map((brand) => (
+              <TouchableOpacity 
+                key={brand.id}
+                style={[styles.brandCard, selectedBrand === brand.id && styles.brandCardActive]}
+                onPress={() => setSelectedBrand(brand.id)}
+                activeOpacity={0.8}
+              >
+                {/* Badge for items in cart for this brand */}
+                {Object.values(cart[brand.id] as Record<string, number>).reduce((a: number, b: number) => a + b, 0) > 0 && (
+                  <View style={styles.brandBadge}>
+                    <Text style={styles.brandBadgeText}>{Object.values(cart[brand.id] as Record<string, number>).reduce((a: number, b: number) => a + b, 0)}</Text>
+                  </View>
+                )}
+                <View style={[styles.brandLogoCircle, { backgroundColor: brand.color + '15' }]}>
+                  <Image source={brand.logo} style={{ width: 40, height: 40 }} resizeMode="contain" />
+                </View>
+                <Text style={styles.brandName}>{brand.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Size Selection for selected Brand */}
+          <Text style={styles.sectionTitle}>اختر الأحجام لـ <Text style={{ color: COLORS.primaryBlue }}>{getBrandName(selectedBrand)}</Text></Text>
+          
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sizesScroll}>
+            <ProductCard 
+              size="5L" 
+              label="عبوة 5 لتر" 
+              subLabel="قارورة واحدة" 
+              price={BOTTLE_PRICES['5L']} 
+              qty={cart[selectedBrand]['5L']} 
+              onAdd={() => updateQuantity('5L', 1)}
+              onSub={() => updateQuantity('5L', -1)}
+            />
+            <ProductCard 
+              size="1.5L" 
+              label="عبوة 1.5 لتر" 
+              subLabel="6 قارورات" 
+              price={BOTTLE_PRICES['1.5L']} 
+              qty={cart[selectedBrand]['1.5L']} 
+              onAdd={() => updateQuantity('1.5L', 1)}
+              onSub={() => updateQuantity('1.5L', -1)}
+            />
+            <ProductCard 
+              size="0.5L" 
+              label="عبوة 0.5 لتر" 
+              subLabel="12 قارورة" 
+              price={BOTTLE_PRICES['0.5L']} 
+              qty={cart[selectedBrand]['0.5L']} 
+              onAdd={() => updateQuantity('0.5L', 1)}
+              onSub={() => updateQuantity('0.5L', -1)}
+            />
+          </ScrollView>
+
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {/* Footer sticky bar */}
+      {/* paddingBottom = Math.max(insets.bottom, MIN_BOTTOM_INSET) + 16
+          صمام الأمان: إذا كان insets.bottom = 0 (Edge-to-Edge على بعض Android)
+          يضمن MIN_BOTTOM_INSET وجود 16dp كحد أدنى فوق حافة الشاشة */}
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, MIN_BOTTOM_INSET) + 16 }]}>
+        <View style={styles.priceContainer}>
+          <Text style={styles.totalValue} adjustsFontSizeToFit numberOfLines={1}>{totalPrice} د.ج</Text>
+          <Text style={styles.totalLabel}>السعر الإجمالي</Text>
+        </View>
+        <View style={styles.actionRow}>
+          <TouchableOpacity style={styles.scheduleBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); handleSchedule(); }}>
+            <Text style={styles.scheduleBtnText}>جدولة</Text>
+          </TouchableOpacity>
+           <TouchableOpacity style={styles.orderBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); handleOrderNow(); }}>
+            <Text style={styles.orderBtnText}>اطلب الآن</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScreenContainer>
+  );
+}
+
+const ProductCard = React.memo(({ label, subLabel, price, qty, onAdd, onSub }: any) => (
+  <View style={styles.productCard}>
+    <View style={styles.productCardTop}>
+      <View style={styles.productInfoRow}>
+        <View style={styles.productInfo}>
+          <Text style={styles.productLabel}>{label}</Text>
+          <Text style={styles.productSubLabel}>{subLabel}</Text>
+          <Text style={styles.productPrice}>{price} د.ج</Text>
+        </View>
+        <View style={styles.productImagePlaceholder}>
+           <Image 
+             source={{ uri: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=150&q=80' }} 
+             style={styles.productImage} 
+           />
+        </View>
+      </View>
+    </View>
+    <View style={styles.stepperContainer}>
+      <TouchableOpacity style={styles.stepperBtn} onPress={onSub} disabled={qty === 0}>
+        <Feather name="minus" size={20} color={qty === 0 ? '#CBD5E1' : COLORS.textSecondary} />
+      </TouchableOpacity>
+      <Text style={styles.stepperValue}>{qty}</Text>
+      <TouchableOpacity style={styles.stepperBtn} onPress={onAdd}>
+        <Feather name="plus" size={20} color={COLORS.primaryBlue} />
+      </TouchableOpacity>
+    </View>
+  </View>
+));
+
+const styles = StyleSheet.create({
+  // safeArea لم تعد ضرورية — ScreenContainer يتعامل مع flex:1 والخلفية
+  header: {
+    height: 60,
+    backgroundColor: COLORS.primaryBlue,
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+  },
+  headerIcon: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 18, fontFamily: 'Cairo-Bold', color: COLORS.white, flex: 1, textAlign: 'center' },
+  scrollContent: {
+    // paddingBottom is set dynamically via inline style using insets.bottom
+  },
+  
+  // Map styles
+  mapCard: {
+    margin: 20,
+    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    elevation: 3,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 1, borderColor: COLORS.border,
+  },
+  mapImageContainer: {
+    height: 120,
+    width: '100%',
+    backgroundColor: '#E2E8F0',
+    position: 'relative',
+  },
+  mapImage: { width: '100%', height: '100%' },
+  mapPinOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  addressBar: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+    backgroundColor: COLORS.white,
+  },
+  addressText: {
+    fontSize: 15,
+    fontFamily: 'Cairo-Bold',
+    color: COLORS.primaryBlue,
+    marginRight: 8,
+  },
+  
+  // Brands styles
+  sectionTitle: { fontSize: 16, fontFamily: 'Cairo-Bold', color: COLORS.textDark, textAlign: 'right', marginHorizontal: 20, marginTop: 10, marginBottom: 15 },
+  brandScroll: { paddingHorizontal: 15, paddingBottom: 10, flexDirection: 'row-reverse' },
+  brandCard: {
+    width: 100,
+    height: 110,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    marginLeft: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+  },
+  brandCardActive: { borderColor: COLORS.accentYellow, borderWidth: 2 },
+  brandBadge: { position: 'absolute', top: -5, right: -5, backgroundColor: COLORS.primaryBlue, width: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center', zIndex: 10 },
+  brandBadgeText: { color: COLORS.white, fontSize: 11, fontFamily: 'Cairo-Bold' },
+  brandLogoCircle: { width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  brandLogoText: { fontSize: 18, fontFamily: 'Cairo-Bold', textAlign: 'center' },
+  brandName: { fontSize: 14, fontFamily: 'Cairo-Bold', color: COLORS.textDark },
+  
+  // Sizes styles
+  sizesScroll: { paddingHorizontal: 15, paddingBottom: 20, flexDirection: 'row-reverse' },
+  productCard: {
+    width: 220,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    marginLeft: 15,
+    borderWidth: 1, borderColor: COLORS.border,
+    elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5,
+    overflow: 'hidden',
+  },
+  productCardTop: { padding: 15 },
+  productInfoRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' },
+  productInfo: { flex: 1, alignItems: 'flex-end' },
+  productLabel: { fontSize: 15, fontFamily: 'Cairo-Bold', color: COLORS.textDark },
+  productSubLabel: { fontSize: 11, fontFamily: 'Cairo-Regular', color: COLORS.textSecondary, marginTop: 2 },
+  productPrice: { fontSize: 15, fontFamily: 'Cairo-Bold', color: COLORS.primaryBlue, marginTop: 8 },
+  productImagePlaceholder: { width: 60, height: 60, borderRadius: 12, backgroundColor: '#F39C12', marginRight: 15, overflow: 'hidden' },
+  productImage: { width: '100%', height: '100%', opacity: 0.7 },
+  stepperContainer: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderTopWidth: 1, borderTopColor: COLORS.border,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  stepperBtn: { padding: 10 },
+  stepperValue: { fontSize: 16, fontFamily: 'Cairo-Bold', color: COLORS.textDark },
+
+  // Footer styles
+  footer: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 20, paddingTop: 15,
+    borderTopWidth: 1, borderTopColor: COLORS.border,
+    zIndex: 100,
+    // paddingBottom is set dynamically via inline style using insets.bottom
+  },
+  priceContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  totalLabel: { fontSize: 15, fontFamily: 'Cairo-Bold', color: COLORS.textSecondary },
+  totalValue: { fontSize: 22, fontFamily: 'Cairo-Bold', color: COLORS.textDark },
+  actionRow: { flexDirection: 'row-reverse', gap: 12 },
+  orderBtn: { flex: 1.5, height: 55, backgroundColor: COLORS.accentYellow, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  orderBtnText: { fontSize: 17, fontFamily: 'Cairo-Bold', color: COLORS.primaryBlue },
+  scheduleBtn: { flex: 1, height: 55, borderRadius: 14, borderWidth: 1.5, borderColor: COLORS.primaryBlue, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.white },
+  scheduleBtnText: { fontSize: 17, fontFamily: 'Cairo-Bold', color: COLORS.primaryBlue },
+});
