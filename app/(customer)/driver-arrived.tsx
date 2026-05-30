@@ -13,7 +13,7 @@ import {
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import MapView, { Marker, CachedUrlTile } from '../../components/Map';
+import MapView, { Marker } from '../../components/Map';
 import { useCustomerStore } from '../../src/store/useCustomerStore';
 
 const { width } = Dimensions.get('window');
@@ -39,7 +39,7 @@ export default function DriverArrivedScreen() {
 
   const coordinates = userLocation || { latitude: 35.5557, longitude: 6.1748 };
   // Driver is very close
-  const driverCoordinates = { latitude: coordinates.latitude + 0.0005, longitude: coordinates.longitude + 0.0005 };
+  const driverCoordinates = { latitude: coordinates.latitude + 0.00015, longitude: coordinates.longitude + 0.00015 };
 
   const serviceName = activeOrder?.type === 'Bottled' ? 'مياه معبأة' : (activeOrder?.type === 'Well' ? 'مياه الآبار' : 'مياه الشرب');
 
@@ -57,37 +57,19 @@ export default function DriverArrivedScreen() {
         <MapView
           style={styles.map}
           initialRegion={{
-            ...coordinates,
-            latitudeDelta: 0.003,
-            longitudeDelta: 0.003,
+            latitude: (coordinates.latitude + driverCoordinates.latitude) / 2,
+            longitude: (coordinates.longitude + driverCoordinates.longitude) / 2,
+            latitudeDelta: 0.001,
+            longitudeDelta: 0.001,
           }}
           scrollEnabled={false}
           zoomEnabled={false}
         >
-          <CachedUrlTile
-            urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maximumZ={19}
-          />
           {/* User Home Marker */}
-          <Marker coordinate={coordinates}>
-            <View style={styles.homeMarkerContainer}>
-              <View style={styles.homeMarker}>
-                <Ionicons name="location" color={COLORS.primaryBlue} size={24} />
-              </View>
-              <View style={styles.markerShadow} />
-            </View>
-          </Marker>
+          <Marker coordinate={coordinates} title="موقعك" />
 
-          {/* Truck Marker (3D) */}
-          <Marker coordinate={driverCoordinates}>
-             <View style={styles.truckMarkerContainer}>
-                <Image 
-                  source={{ uri: 'https://img.icons8.com/3d-fluency/188/truck.png' }} 
-                  style={styles.truckIcon3D}
-                  resizeMode="contain"
-                />
-             </View>
-          </Marker>
+          {/* Truck Marker */}
+          <Marker coordinate={driverCoordinates} title="الشاحنة" iconType="truck" />
         </MapView>
       )}
 

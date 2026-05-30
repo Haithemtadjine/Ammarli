@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import { useDriverStore } from '../../../src/store/useDriverStore';
 import NewOrderCard, { ORDER_TYPES, OrderType } from '../../../components/NewOrderCard';
+import UpdateInventoryModal from '../../../components/UpdateInventoryModal';
 
 const { width } = Dimensions.get('window');
 const COLORS = { 
@@ -102,6 +103,7 @@ const BRAND_ASSETS: Record<string, any> = {
 const InventoryListCard = () => {
   const registeredBrands = useDriverStore(s => s.registeredDriver?.brands ?? []);
   const [selectedBrand, setSelectedBrand] = useState(registeredBrands[0] ?? '');
+  const [showInventoryModal, setShowInventoryModal] = useState(false);
 
   // بناء قائمة العلامات الديناميكية
   const brands = registeredBrands
@@ -151,10 +153,21 @@ const InventoryListCard = () => {
         <StockBox label="5 لتر" val="10" status="فارغ" color={COLORS.danger} bg="#FEF2F2" />
       </View>
 
-      <TouchableOpacity style={styles.refillBtnInv}>
+      {/* زر تعبئة المخزون — يفتح المودال */}
+      <TouchableOpacity
+        style={styles.refillBtnInv}
+        onPress={() => setShowInventoryModal(true)}
+        activeOpacity={0.85}
+      >
          <Ionicons name="refresh-outline" size={20} color={COLORS.white} />
          <Text style={styles.refillTextInv}>تعبئة المخزون</Text>
       </TouchableOpacity>
+
+      {/* مودال تحديث المخزون */}
+      <UpdateInventoryModal
+        visible={showInventoryModal}
+        onClose={() => setShowInventoryModal(false)}
+      />
     </View>
   );
 };

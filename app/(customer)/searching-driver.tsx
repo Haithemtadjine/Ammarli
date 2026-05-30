@@ -12,7 +12,7 @@ import {
   Image,
   StatusBar
 } from 'react-native';
-import MapView, { Marker, CachedUrlTile } from '../../components/Map';
+import MapView, { Marker } from '../../components/Map';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowRight, Droplet, Truck } from 'lucide-react-native';
@@ -97,30 +97,13 @@ export default function SearchingDriverScreen() {
             longitudeDelta: 0.015,
           }}
         >
-          <CachedUrlTile
-            urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maximumZ={19}
-            flipY={false}
-          />
           {/* Main User Marker */}
-          <Marker coordinate={coordinates}>
-            <View style={styles.userMarkerContainer}>
-              <View style={styles.userMarker}>
-                <Ionicons name="location" color={COLORS.white} size={20} />
-              </View>
-            </View>
-          </Marker>
+          <Marker coordinate={coordinates} title="موقعك" />
 
           {/* Simulated Trucks */}
-          <Marker coordinate={{ latitude: coordinates.latitude + 0.004, longitude: coordinates.longitude + 0.004 }}>
-             <View style={styles.truckIcon}><Truck color={COLORS.primaryBlue} size={16} /></View>
-          </Marker>
-          <Marker coordinate={{ latitude: coordinates.latitude - 0.005, longitude: coordinates.longitude - 0.003 }}>
-             <View style={styles.truckIcon}><Truck color={COLORS.primaryBlue} size={16} /></View>
-          </Marker>
-          <Marker coordinate={{ latitude: coordinates.latitude + 0.002, longitude: coordinates.longitude - 0.006 }}>
-             <View style={styles.truckIcon}><Truck color={COLORS.primaryBlue} size={16} /></View>
-          </Marker>
+          <Marker coordinate={{ latitude: coordinates.latitude + 0.004, longitude: coordinates.longitude + 0.004 }} title="شاحنة 1" iconType="truck" />
+          <Marker coordinate={{ latitude: coordinates.latitude - 0.005, longitude: coordinates.longitude - 0.003 }} title="شاحنة 2" iconType="truck" />
+          <Marker coordinate={{ latitude: coordinates.latitude + 0.002, longitude: coordinates.longitude - 0.006 }} title="شاحنة 3" iconType="truck" />
         </MapView>
       )}
 
@@ -152,7 +135,7 @@ export default function SearchingDriverScreen() {
 
         <View style={styles.orderCard}>
           <View style={styles.priceContainer}>
-             <Text style={styles.priceValue}>{price} درهم</Text>
+             <Text style={styles.priceValue}>{price} دينار</Text>
           </View>
           <View style={styles.serviceTextContainer}>
              <Text style={styles.serviceLabel}>الخدمة المختارة:</Text>

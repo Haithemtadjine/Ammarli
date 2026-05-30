@@ -14,7 +14,7 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import MapView, { Marker, Polyline, CachedUrlTile } from '../../components/Map';
+import MapView, { Marker, Polyline } from '../../components/Map';
 import { useCustomerStore } from '../../src/store/useCustomerStore';
 import ScreenContainer, { MIN_BOTTOM_INSET } from '../../components/ScreenContainer';
 
@@ -117,10 +117,6 @@ export default function OrderTrackingScreen() {
               scrollEnabled={false}
               zoomEnabled={false}
             >
-              <CachedUrlTile
-                urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                maximumZ={19}
-              />
               <Polyline 
                 coordinates={[driverCoordinates, coordinates]}
                 strokeColor="#1E88E5"
@@ -128,18 +124,10 @@ export default function OrderTrackingScreen() {
               />
               
               {/* User Location */}
-              <Marker coordinate={coordinates}>
-                <View style={styles.userPin}>
-                  <View style={styles.userPinDot} />
-                </View>
-              </Marker>
+              <Marker coordinate={coordinates} title="موقعك" />
 
               {/* Driver Location */}
-              <Marker coordinate={driverCoordinates}>
-                <View style={styles.driverPin}>
-                  <MaterialCommunityIcons name="truck-delivery" color={COLORS.white} size={16} />
-                </View>
-              </Marker>
+              <Marker coordinate={driverCoordinates} title="موقع السائق" iconType="truck" />
             </MapView>
           )}
         </View>

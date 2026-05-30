@@ -56,7 +56,7 @@ export default function MyAccountScreen() {
 
   const performLogout = async () => {
     await logout();
-    router.replace('/role-selection');
+    router.replace('/(customer)/login');
   };
 
   // MenuItem sub-component

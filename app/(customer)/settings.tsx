@@ -66,7 +66,7 @@ const SettingsScreen = () => {
           style: "destructive", 
           onPress: async () => {
             await logout();
-            router.replace('/role-selection');
+            router.replace('/(customer)/login');
           } 
         }
       ]
@@ -103,7 +103,7 @@ const SettingsScreen = () => {
         text: "موافق",
         onPress: async () => {
           await logout();
-          router.replace('/role-selection');
+          router.replace('/(customer)/login');
         }
       }
     ]);

@@ -272,8 +272,9 @@ const ProductCard = React.memo(({ label, subLabel, price, qty, onAdd, onSub }: a
         </View>
         <View style={styles.productImagePlaceholder}>
            <Image 
-             source={{ uri: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=150&q=80' }} 
+             source={require('../../assets/images/bottled_icon.png')} 
              style={styles.productImage} 
+             resizeMode="contain"
            />
         </View>
       </View>
@@ -379,8 +380,8 @@ const styles = StyleSheet.create({
   productLabel: { fontSize: 15, fontFamily: 'Cairo-Bold', color: COLORS.textDark },
   productSubLabel: { fontSize: 11, fontFamily: 'Cairo-Regular', color: COLORS.textSecondary, marginTop: 2 },
   productPrice: { fontSize: 15, fontFamily: 'Cairo-Bold', color: COLORS.primaryBlue, marginTop: 8 },
-  productImagePlaceholder: { width: 60, height: 60, borderRadius: 12, backgroundColor: '#F39C12', marginRight: 15, overflow: 'hidden' },
-  productImage: { width: '100%', height: '100%', opacity: 0.7 },
+  productImagePlaceholder: { width: 60, height: 60, borderRadius: 12, backgroundColor: '#F8FAFC', marginRight: 15, padding: 5, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border },
+  productImage: { width: '100%', height: '100%' },
   stepperContainer: {
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',

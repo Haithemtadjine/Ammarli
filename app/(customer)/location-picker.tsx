@@ -22,7 +22,7 @@ import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import { useCustomerStore } from '../../src/store/useCustomerStore';
 
-import MapView, { CachedUrlTile } from '../../components/Map';
+import MapView from '../../components/Map';
 
 const { width, height } = Dimensions.get('window');
 
@@ -65,7 +65,12 @@ export default function InteractiveLocationPicker() {
     const timeoutId = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&addressdetails=1&limit=5&countrycodes=dz`);
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&addressdetails=1&limit=5&countrycodes=dz`, {
+          headers: {
+            'User-Agent': 'AmmarliApp/1.0',
+            'Accept-Language': 'ar'
+          }
+        });
         const data = await response.json();
         setSearchResults(data);
       } catch (error) {
@@ -112,12 +117,29 @@ export default function InteractiveLocationPicker() {
       try {
         let { status } = await Location.getForegroundPermissionsAsync();
         if (status === 'granted') {
-          let location = await Location.getCurrentPositionAsync({});
+          let location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.High
+          });
+          const lat = location.coords.latitude;
+          const lon = location.coords.longitude;
+          
           setRegion(prev => ({
             ...prev,
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude
+            latitude: lat,
+            longitude: lon
           }));
+
+          if (Platform.OS !== 'web') {
+            // Add a small delay to ensure the map component is fully mounted before animating
+            setTimeout(() => {
+              mapRef.current?.animateToRegion({
+                latitude: lat,
+                longitude: lon,
+                latitudeDelta: 0.005,
+                longitudeDelta: 0.005,
+              }, 1200);
+            }, 300);
+          }
           
           try {
             let geocode = await Location.reverseGeocodeAsync({
@@ -147,13 +169,26 @@ export default function InteractiveLocationPicker() {
   };
 
   // Update coordinates and animate pin down when map moves
-  const onRegionChangeComplete = (newRegion: any) => {
+  const onRegionChangeComplete = async (newRegion: any) => {
     setRegion(newRegion);
     Animated.spring(pinTranslateY, {
       toValue: 0,
       useNativeDriver: true,
       bounciness: 12,
     }).start();
+
+    try {
+      let geocode = await Location.reverseGeocodeAsync({
+        latitude: newRegion.latitude,
+        longitude: newRegion.longitude
+      });
+      if (geocode.length > 0) {
+        const shortAddress = geocode[0].district || geocode[0].street || geocode[0].city;
+        if (shortAddress) setAddress(shortAddress);
+      }
+    } catch (e) {
+      console.log("Geocode error on drag", e);
+    }
   };
 
   const handleConfirmLocation = () => {
@@ -177,13 +212,7 @@ export default function InteractiveLocationPicker() {
           onRegionChange={onRegionChange}
           onRegionChangeComplete={onRegionChangeComplete}
           showsUserLocation={true}
-        >
-          <CachedUrlTile
-            urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maximumZ={19}
-            flipY={false}
-          />
-        </MapView>
+        />
       )}
 
       {/* 2. Central Interactive Pin */}
@@ -237,9 +266,36 @@ export default function InteractiveLocationPicker() {
       {/* 4. GPS Location Button */}
       <TouchableOpacity 
         style={styles.gpsButton}
-        onPress={() => {
-           if (Platform.OS !== 'web') {
-             mapRef.current?.animateToRegion(region, 1000);
+        onPress={async () => {
+           try {
+             let location = await Location.getCurrentPositionAsync({
+               accuracy: Location.Accuracy.High,
+             });
+             const lat = location.coords.latitude;
+             const lon = location.coords.longitude;
+             setRegion(prev => ({
+               ...prev,
+               latitude: lat,
+               longitude: lon
+             }));
+             if (Platform.OS !== 'web') {
+               mapRef.current?.animateToRegion({
+                 latitude: lat,
+                 longitude: lon,
+                 latitudeDelta: 0.01,
+                 longitudeDelta: 0.01,
+               }, 1000);
+             }
+             let geocode = await Location.reverseGeocodeAsync({
+               latitude: lat,
+               longitude: lon
+             });
+             if (geocode.length > 0) {
+               setAddress(geocode[0].district || geocode[0].street || geocode[0].city || address);
+             }
+           } catch (e) {
+             console.log("GPS fetch failed", e);
+             Alert.alert("خطأ", "تعذر الحصول على موقعك الحالي. يرجى تفعيل خدمة الموقع (GPS).");
            }
         }}
       >

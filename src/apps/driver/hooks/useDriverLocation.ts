@@ -46,7 +46,7 @@ export function useDriverLocation(): DriverLocationState {
 
         // Get initial position
         const initialLoc = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
+          accuracy: Location.Accuracy.Highest,
         });
 
         const { latitude, longitude } = initialLoc.coords;
