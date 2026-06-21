@@ -21,7 +21,7 @@ const COLORS = {
   primary:       '#002147',
   secondary:     '#F3CD0D',
   white:         '#FFFFFF',
-  background:    '#F8FAFC',
+  background:    '#E2E8F0',
   textSecondary: '#64748B',
   border:        '#F1F5F9',
   danger:        '#EF4444',
@@ -61,8 +61,8 @@ export default function OrderDetailsScreen() {
   const orderNumber  = params.orderNumber ?? String(Math.floor(10000 + Math.random() * 90000));
   const meta         = ORDER_META[orderType] ?? ORDER_META.spring_water;
 
-  const deliveryFee = 150;
-  const total       = price + deliveryFee;
+  const deliveryFee = 0;
+  const total       = price;
 
   const now = new Date();
   const dateLabel = now.toLocaleDateString('ar-DZ', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -153,29 +153,23 @@ export default function OrderDetailsScreen() {
 
   // ── إلغاء الطلب ────────────────────────────────────────────────────────────
   const handleCancel = () => {
-    router.push('/(driver)/cancel-order' as any);
+    router.push({
+      pathname: '/(driver)/cancel-order' as any,
+      params: params,
+    });
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* خلفية الخريطة */}
-      <View style={styles.mapBackground}>
-        <Image
-          source={{ uri: 'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/3.0588,36.7538,13/600x1200?access_token=pk.placeholder' }}
-          style={styles.mapImage}
-          defaultSource={require('../../assets/images/icon.png')}
-        />
-      </View>
+
 
       <View style={[styles.overlay, { paddingTop: insets.top }]}>
 
         {/* ── Header ── */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="chevron-forward" size={28} color={COLORS.primary} />
-          </TouchableOpacity>
+          <View style={{ width: 44 }} />
           <Text style={styles.headerTitle}>تفاصيل الطلب</Text>
           <View style={{ width: 44 }} />
         </View>
@@ -228,7 +222,7 @@ export default function OrderDetailsScreen() {
               <View style={[styles.iconBox, { backgroundColor: '#EFF6FF' }]}>
                 <Ionicons name="navigate" size={22} color="#2563EB" />
               </View>
-              <View style={{ flex: 1, alignItems: 'flex-end' }}>
+              <View style={{ flex: 1, alignItems: 'flex-start' }}>
                 <Text style={styles.addressTitle}>عنوان التوصيل</Text>
                 <Text style={styles.addressSub}>{address}</Text>
               </View>
@@ -275,7 +269,7 @@ export default function OrderDetailsScreen() {
           <View style={styles.invoiceCard}>
             <View style={styles.billItem}>
               <Text style={styles.billPrice}>{price.toLocaleString('ar-DZ')} د.ج</Text>
-              <View style={{ alignItems: 'flex-end', flex: 1 }}>
+              <View style={{ alignItems: 'flex-start', flex: 1 }}>
                 <Text style={styles.billName}>{meta.label}</Text>
                 <Text style={styles.billSub}>الطلبية الرئيسية</Text>
               </View>
@@ -286,14 +280,7 @@ export default function OrderDetailsScreen() {
 
             <View style={styles.divider} />
 
-            <View style={styles.totalRow}>
-              <Text style={styles.totalVal}>{price.toLocaleString('ar-DZ')} د.ج</Text>
-              <Text style={styles.totalLabel}>المجموع الفرعي</Text>
-            </View>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalVal}>{deliveryFee} د.ج</Text>
-              <Text style={styles.totalLabel}>رسوم التوصيل</Text>
-            </View>
+
             <View style={[styles.totalRow, { marginTop: 12 }]}>
               <Text style={styles.grandTotalVal}>{total.toLocaleString('ar-DZ')} د.ج</Text>
               <Text style={styles.grandTotalLabel}>الإجمالي</Text>
@@ -314,7 +301,7 @@ export default function OrderDetailsScreen() {
         {/* ── أزرار الأسفل ── */}
         <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
           <TouchableOpacity style={styles.callButton} onPress={handleCall} activeOpacity={0.8}>
-            <Ionicons name="call-outline" size={20} color={COLORS.primary} style={{ marginLeft: 10 }} />
+            <Ionicons name="call-outline" size={20} color={COLORS.primary} style={{ marginRight: 10 }} />
             <Text style={styles.callText}>اتصال بالعميل</Text>
           </TouchableOpacity>
 
@@ -324,7 +311,7 @@ export default function OrderDetailsScreen() {
             activeOpacity={0.8}
             disabled={completing}
           >
-            <Ionicons name="checkmark-circle-outline" size={22} color={COLORS.primary} style={{ marginLeft: 10 }} />
+            <Ionicons name="checkmark-circle-outline" size={22} color={COLORS.primary} style={{ marginRight: 10 }} />
             <Text style={styles.completeText}>إتمام التوصيل</Text>
           </TouchableOpacity>
 
@@ -339,13 +326,11 @@ export default function OrderDetailsScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container:     { flex: 1, backgroundColor: COLORS.white },
-  mapBackground: { ...StyleSheet.absoluteFillObject, backgroundColor: '#E2E8F0' },
-  mapImage:      { width: '100%', height: '100%', opacity: 0.45 },
+  container:     { flex: 1, backgroundColor: COLORS.background },
   overlay:       { flex: 1 },
 
   // Header
-  header:      { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, height: 60 },
+  header:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, height: 60 },
   headerTitle: { fontSize: 20, fontFamily: 'Cairo-Black', color: COLORS.primary },
   backButton:  { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', elevation: 3 },
 
@@ -357,28 +342,28 @@ const styles = StyleSheet.create({
     marginTop: 15, elevation: 10,
     shadowColor: COLORS.primary, shadowOpacity: 0.25, shadowRadius: 15,
   },
-  statusRow:   { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' },
+  statusRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   statusBadge: { backgroundColor: 'rgba(243,205,13,0.2)', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 10 },
   statusText:  { color: COLORS.secondary, fontSize: 12, fontFamily: 'Cairo-Bold' },
   orderLabel:  { color: 'rgba(255,255,255,0.6)', fontFamily: 'Cairo-SemiBold' },
-  orderNumber: { fontSize: 38, fontFamily: 'Cairo-Black', color: COLORS.white, textAlign: 'right', marginTop: 5 },
-  dateRow:     { flexDirection: 'row-reverse', alignItems: 'center', marginTop: 10, gap: 8 },
+  orderNumber: { fontSize: 38, fontFamily: 'Cairo-Black', color: COLORS.white, textAlign: 'left', marginTop: 5 },
+  dateRow:     { flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 8 },
   dateText:    { color: 'rgba(255,255,255,0.7)', fontSize: 13, fontFamily: 'Cairo-SemiBold' },
 
-  sectionHeader: { fontSize: 15, fontFamily: 'Cairo-Black', color: COLORS.primary, textAlign: 'right', marginTop: 25, marginBottom: 15 },
+  sectionHeader: { fontSize: 15, fontFamily: 'Cairo-Black', color: COLORS.primary, textAlign: 'left', marginTop: 25, marginBottom: 15 },
 
   // Info cards
   infoCard:   { backgroundColor: COLORS.white, borderRadius: 22, padding: 15, marginBottom: 15, elevation: 2, shadowColor: '#000', shadowOpacity: 0.03 },
-  customerRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 15 },
+  customerRow: { flexDirection: 'row', alignItems: 'center', gap: 15 },
   avatar:      { width: 60, height: 60, borderRadius: 30 },
-  customerInfo: { flex: 1, alignItems: 'flex-end' },
+  customerInfo: { flex: 1, alignItems: 'flex-start' },
   customerName: { fontSize: 18, fontFamily: 'Cairo-Bold', color: COLORS.primary },
   customerPhone: { fontSize: 13, fontFamily: 'Cairo-SemiBold', color: COLORS.textSecondary },
-  ratingRow:   { flexDirection: 'row-reverse', alignItems: 'center', gap: 4, marginTop: 4 },
+  ratingRow:   { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   ratingText:  { fontSize: 12, fontFamily: 'Cairo-Bold', color: COLORS.textSecondary },
   dot:         { width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#CBD5E1' },
 
-  addressRow:  { flexDirection: 'row-reverse', alignItems: 'center', gap: 15, marginBottom: 15 },
+  addressRow:  { flexDirection: 'row', alignItems: 'center', gap: 15, marginBottom: 15 },
   iconBox:     { width: 44, height: 44, borderRadius: 12, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' },
   addressTitle: { fontSize: 16, fontFamily: 'Cairo-Bold', color: COLORS.primary },
   addressSub:  { fontSize: 12, fontFamily: 'Cairo-SemiBold', color: COLORS.textSecondary },
@@ -388,13 +373,13 @@ const styles = StyleSheet.create({
 
   // Invoice
   invoiceCard: { backgroundColor: COLORS.white, borderRadius: 25, padding: 20, elevation: 2 },
-  billItem:    { flexDirection: 'row-reverse', alignItems: 'center', gap: 12, marginBottom: 15 },
+  billItem:    { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 15 },
   billIcon:    { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   billName:    { fontSize: 16, fontFamily: 'Cairo-Bold', color: COLORS.primary },
   billSub:     { fontSize: 12, fontFamily: 'Cairo-SemiBold', color: COLORS.textSecondary },
   billPrice:   { fontSize: 16, fontFamily: 'Cairo-Black', color: COLORS.primary },
   divider:     { height: 1, backgroundColor: COLORS.border, marginVertical: 15 },
-  totalRow:    { flexDirection: 'row-reverse', justifyContent: 'space-between', marginBottom: 5 },
+  totalRow:    { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
   totalLabel:  { fontSize: 14, fontFamily: 'Cairo-SemiBold', color: COLORS.textSecondary },
   totalVal:    { fontSize: 14, fontFamily: 'Cairo-Bold', color: COLORS.primary },
   grandTotalLabel: { fontSize: 20, fontFamily: 'Cairo-Black', color: COLORS.primary },
@@ -402,7 +387,7 @@ const styles = StyleSheet.create({
 
   // Success
   successBanner: {
-    flexDirection: 'row-reverse', alignItems: 'center', gap: 10,
+    flexDirection: 'row', alignItems: 'center', gap: 10,
     backgroundColor: '#F0FDF4', borderRadius: 16, padding: 16, marginTop: 16,
     borderWidth: 1, borderColor: '#BBF7D0',
   },
@@ -410,9 +395,9 @@ const styles = StyleSheet.create({
 
   // Footer
   footer:          { paddingHorizontal: 20, gap: 12 },
-  completeButton:  { height: 60, backgroundColor: COLORS.secondary, borderRadius: 18, flexDirection: 'row-reverse', justifyContent: 'center', alignItems: 'center', elevation: 5 },
+  completeButton:  { height: 60, backgroundColor: COLORS.secondary, borderRadius: 18, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', elevation: 5 },
   completeText:    { fontSize: 18, fontFamily: 'Cairo-Black', color: COLORS.primary },
-  callButton:      { height: 60, borderWidth: 2, borderColor: COLORS.primary, borderRadius: 18, flexDirection: 'row-reverse', justifyContent: 'center', alignItems: 'center' },
+  callButton:      { height: 60, borderWidth: 2, borderColor: COLORS.primary, borderRadius: 18, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   callText:        { fontSize: 16, fontFamily: 'Cairo-Bold', color: COLORS.primary },
   cancelLink:      { textAlign: 'center', color: COLORS.danger, fontFamily: 'Cairo-Bold', textDecorationLine: 'underline', marginTop: 5 },
 
@@ -421,10 +406,10 @@ const styles = StyleSheet.create({
     width: 36, height: 36, borderRadius: 10,
     backgroundColor: '#EFF6FF',
     justifyContent: 'center', alignItems: 'center',
-    marginLeft: 10,
+    marginRight: 10,
   },
-  mapPinCustomer: { position: 'absolute', top: '30%', left: '55%' },
-  mapPinDriver:   { position: 'absolute', top: '50%', left: '30%' },
+  mapPinCustomer: { position: 'absolute', top: '30%', right: '55%' },
+  mapPinDriver:   { position: 'absolute', top: '50%', right: '30%' },
   mapOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
@@ -432,7 +417,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   openMapsBtn: {
-    flexDirection: 'row-reverse', alignItems: 'center', gap: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
     backgroundColor: '#2563EB',
     paddingHorizontal: 18, paddingVertical: 8,
     borderRadius: 20,

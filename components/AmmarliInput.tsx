@@ -35,7 +35,7 @@ const AmmarliInput = forwardRef<TextInput, AmmarliInputProps>((props, ref) => {
           style={styles.input}
           placeholderTextColor="#94A3B8"
           secureTextEntry={isPassword}
-          textAlign={Platform.OS === 'ios' ? 'right' : undefined}
+          textAlign="right"
           {...textInputProps}
         />
 
@@ -52,7 +52,7 @@ export default AmmarliInput;
 const styles = StyleSheet.create({
   inputWrapper: { marginBottom: 20 },
   inputLabel: { fontFamily: 'Cairo-Bold', fontSize: 14, color: COLORS.primary, marginBottom: 8, textAlign: 'right' },
-  inputContainer: { flexDirection: 'row', height: 60, backgroundColor: COLORS.inputBg, borderRadius: 16, alignItems: 'center', paddingHorizontal: 15 },
+  inputContainer: { flexDirection: 'row-reverse', height: 60, backgroundColor: COLORS.inputBg, borderRadius: 16, alignItems: 'center', paddingHorizontal: 15 },
   inputError: { borderWidth: 1, borderColor: COLORS.error },
   input: { flex: 1, fontFamily: 'Cairo-Regular', fontSize: 16, color: COLORS.primary },
   mainIcon: { marginLeft: 10 },

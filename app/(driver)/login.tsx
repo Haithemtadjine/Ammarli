@@ -8,24 +8,22 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  Image,
   Alert,
   TextInput,
+  BackHandler
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import AmmarliInput from '../../components/AmmarliInput';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useDriverStore } from '../../src/store/useDriverStore';
 
 const COLORS = {
-  primary: '#003366',
-  secondary: '#F3CD0D',
+  primary: '#002147',
+  secondary: '#FFCC00',
   white: '#FFFFFF',
-  textSecondary: '#64748B',
+  textSecondary: '#9CA3AF',
+  inputBg: '#F8FAFC',
 };
-
-// ─── Main Screen ─────────────────────────────────────────────────────────────
 
 const DriverLoginScreen = () => {
   const insets = useSafeAreaInsets();
@@ -35,14 +33,23 @@ const DriverLoginScreen = () => {
   const [error, setError] = useState('');
   const passwordRef = useRef<TextInput>(null);
 
-  // قراءة الحساب المسجّل من Store
   const registeredDriver = useDriverStore(s => s.registeredDriver);
 
-  // ── منطق تسجيل الدخول ─────────────────────────────────────────────────────
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        BackHandler.exitApp();
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription.remove();
+    }, [])
+  );
+
   const handleLogin = () => {
     setError('');
 
-    // ① لا يوجد حساب مسجّل بعد
     if (!registeredDriver) {
       Alert.alert(
         'لا يوجد حساب',
@@ -55,171 +62,191 @@ const DriverLoginScreen = () => {
       return;
     }
 
-    // ② التحقق من رقم الهاتف
     if (phone.trim() !== registeredDriver.phone.trim()) {
       setError('رقم الهاتف غير صحيح');
       return;
     }
 
-    // ③ التحقق من كلمة المرور
     if (password !== registeredDriver.password) {
       setError('كلمة المرور غير صحيحة');
       return;
     }
 
-    // ✅ البيانات صحيحة → الانتقال للوحة التحكم
     router.replace('/(driver)/(tabs)' as any);
   };
 
-  // ── محتوى النموذج (مشترك بين iOS و Android) ──────────────────────────────
   const FormContent = (
-    <>
-      {/* Illustration */}
-      <View style={styles.illustrationSection}>
-        <View style={styles.circleBg}>
-          <Image
-            source={require('../../assets/images/traker.png')}
-            style={styles.truckImage}
-            resizeMode="contain"
-          />
-        </View>
+    <View style={styles.contentWrapper}>
+      {/* Top Logo */}
+      <View style={styles.logoContainer}>
+        <Text style={styles.logoText}>AMMARLI</Text>
+      </View>
+
+      {/* Header Row */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.replace('/role-selection')}>
+          <Ionicons name='chevron-forward' size={28} color={COLORS.primary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>تسجيل دخول السائق</Text>
+        <View style={{ width: 44 }} />
+      </View>
+
+      {/* Greeting */}
+      <View style={styles.greetingSection}>
         <Text style={styles.title}>مرحباً بك مجدداً</Text>
         <Text style={styles.subtitle}>الرجاء إدخال بياناتك للمتابعة</Text>
       </View>
 
       {/* Form */}
       <View style={styles.formContainer}>
-        <AmmarliInput
-          label="رقم الهاتف"
-          placeholder="+213 00 00 00 00"
-          iconName="phone-portrait-outline"
-          value={phone}
-          onChangeText={setPhone}
-          keyboardType="phone-pad"
-        />
-
-        <View style={{ marginTop: 15 }}>
-          <AmmarliInput
-            label="كلمة المرور"
-            placeholder="••••••••"
-            iconName="lock-closed-outline"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            isPassword
-          />
-          <TouchableOpacity style={styles.forgotBtn}>
-            <Text style={styles.forgotPassText}>نسيت كلمة المرور؟</Text>
-          </TouchableOpacity>
+        
+        {/* Phone Input */}
+        <View style={styles.inputWrapper}>
+          <Text style={styles.inputLabel}>رقم الهاتف</Text>
+          <View style={styles.inputContainer}>
+            <Ionicons name="phone-portrait-outline" size={20} color={COLORS.primary} style={styles.inputIcon} />
+            <TextInput
+              style={styles.textInput}
+              placeholder="+213 00 00 00 00"
+              placeholderTextColor={COLORS.textSecondary}
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={setPhone}
+              textAlign="right"
+            />
+          </View>
         </View>
 
-        {/* رسالة الخطأ */}
+        {/* Password Input */}
+        <View style={[styles.inputWrapper, { marginTop: 20 }]}>
+          <Text style={styles.inputLabel}>كلمة المرور</Text>
+          <View style={styles.inputContainer}>
+            <Ionicons name="lock-closed-outline" size={20} color={COLORS.primary} style={styles.inputIcon} />
+            <TextInput
+              ref={passwordRef}
+              style={styles.textInput}
+              placeholder="••••••••"
+              placeholderTextColor={COLORS.textSecondary}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              textAlign="right"
+            />
+          </View>
+        </View>
+
+        {/* Forgot Password */}
+        <TouchableOpacity style={styles.forgotBtn}>
+          <Text style={styles.forgotPassText}>نسيت كلمة المرور؟</Text>
+        </TouchableOpacity>
+
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        {/* زر تسجيل الدخول — يمر دائماً عبر handleLogin */}
+        {/* Login Button */}
         <TouchableOpacity
           style={styles.loginButton}
           activeOpacity={0.8}
           onPress={handleLogin}
         >
           <Text style={styles.loginButtonText}>تسجيل الدخول</Text>
-          <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
+          <Ionicons name='arrow-forward' size={24} color={COLORS.primary} style={styles.loginArrow} />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.signUpLink}
-          onPress={() => router.push('/(driver)/register')}
-        >
-          <Text style={styles.signUpText}>
-            ليس لديك حساب؟{' '}
-            <Text style={styles.signUpBold}>إنشاء حساب جديد</Text>
-          </Text>
-        </TouchableOpacity>
       </View>
-    </>
+
+      {/* Spacer to push signup link to bottom */}
+      <View style={styles.spacer} />
+
+      {/* Sign Up Link */}
+      <TouchableOpacity
+        style={styles.signUpLink}
+        onPress={() => router.push('/(driver)/register')}
+      >
+        <Text style={styles.signUpText}>
+          ليس لديك حساب؟{' '}
+          <Text style={styles.signUpBold}>إنشاء حساب جديد</Text>
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 
   return (
     <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? insets.top : 0 }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} translucent={false} />
-
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={28} color={COLORS.primary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>تسجيل دخول السائق</Text>
-        <View style={{ width: 44 }} />
-      </View>
-
-      {/* iOS: KeyboardAvoidingView | Android: View */}
-      {Platform.OS === 'ios' ? (
-        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-          <ScrollView
-            contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="always"
-          >
-            {FormContent}
-          </ScrollView>
-        </KeyboardAvoidingView>
-      ) : (
+      
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="always"
+          keyboardShouldPersistTaps="handled"
         >
           {FormContent}
         </ScrollView>
-      )}
+      </KeyboardAvoidingView>
     </View>
   );
 };
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: COLORS.white },
-  header:      { height: 50, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15 },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: COLORS.primary },
-  backButton:  { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, backgroundColor: COLORS.white },
+  scrollContent: { flexGrow: 1, paddingHorizontal: 30 },
+  contentWrapper: { flex: 1, minHeight: '100%', paddingVertical: 20 },
 
-  scrollContent:       { flexGrow: 1, paddingHorizontal: 30 },
-  illustrationSection: { alignItems: 'center', marginTop: 10, marginBottom: 30 },
-  circleBg: {
-    width: 150, height: 150, borderRadius: 75,
-    backgroundColor: '#F1F5F9', justifyContent: 'center',
-    alignItems: 'center', marginBottom: 20, overflow: 'hidden',
+  logoContainer: { alignItems: 'center', marginBottom: 30, marginTop: 10 },
+  logoText: { fontSize: 18, fontFamily: 'Cairo-Bold', color: COLORS.primary, letterSpacing: 4 },
+
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 40 },
+  backButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 22, fontFamily: 'Cairo-Bold', color: COLORS.primary },
+
+  greetingSection: { alignItems: 'center', marginBottom: 40 },
+  title: { fontSize: 26, fontFamily: 'Cairo-Bold', color: COLORS.primary, marginBottom: 8 },
+  subtitle: { fontSize: 15, fontFamily: 'Cairo-Regular', color: COLORS.textSecondary },
+
+  formContainer: { width: '100%' },
+
+  inputWrapper: { width: '100%' },
+  inputLabel: { fontSize: 15, fontFamily: 'Cairo-Bold', color: COLORS.primary, textAlign: 'left', marginBottom: 8 },
+  inputContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: COLORS.inputBg,
+    borderRadius: 16, 
+    paddingHorizontal: 18, 
+    height: 60 
   },
-  truckImage: { width: '80%', height: '80%' },
-  title:      { fontSize: 28, fontWeight: '900', color: COLORS.primary, textAlign: 'center', marginBottom: 5 },
-  subtitle:   { fontSize: 15, color: COLORS.textSecondary, textAlign: 'center' },
+  textInput: { flex: 1, fontSize: 16, color: COLORS.primary, fontFamily: 'Cairo-Regular', textAlign: 'left' },
+  inputIcon: { marginRight: 12 },
 
-  formContainer:  { width: '100%' },
-  forgotBtn:      { alignSelf: 'flex-start', marginTop: 8 },
-  forgotPassText: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
+  forgotBtn: { alignSelf: 'flex-end', marginTop: 15 },
+  forgotPassText: { fontSize: 14, fontFamily: 'Cairo-Bold', color: COLORS.primary },
 
   errorText: {
     color: '#EF4444',
     fontFamily: 'Cairo-Bold',
     fontSize: 13,
     textAlign: 'center',
-    marginTop: 12,
-    marginBottom: -8,
+    marginTop: 15,
   },
 
   loginButton: {
-    flexDirection: 'row', height: 60, backgroundColor: COLORS.secondary,
-    borderRadius: 30, justifyContent: 'center', alignItems: 'center',
-    marginTop: 30, gap: 10, elevation: 5,
-    shadowColor: COLORS.secondary, shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3, shadowRadius: 10,
+    flexDirection: 'row', 
+    height: 60, 
+    backgroundColor: COLORS.secondary,
+    borderRadius: 30, 
+    justifyContent: 'center', 
+    alignItems: 'center',
+    marginTop: 40,
+    position: 'relative',
   },
-  loginButtonText: { fontSize: 18, fontWeight: '900', color: COLORS.primary },
+  loginArrow: { position: 'absolute', left: 24 },
+  loginButtonText: { fontSize: 18, fontFamily: 'Cairo-Bold', color: COLORS.primary },
 
-  signUpLink: { alignItems: 'center', marginTop: 25 },
-  signUpText: { fontSize: 14, color: COLORS.textSecondary },
-  signUpBold: { fontWeight: '900', color: COLORS.primary },
+  spacer: { flex: 1, minHeight: 40 },
+
+  signUpLink: { alignItems: 'center', paddingBottom: 10 },
+  signUpText: { fontSize: 15, fontFamily: 'Cairo-Regular', color: COLORS.textSecondary },
+  signUpBold: { fontFamily: 'Cairo-Bold', color: COLORS.primary },
 });
 
 export default DriverLoginScreen;

@@ -88,6 +88,7 @@ const DriverRegistrationScreen = () => {
   const [fullName,  setFullName]  = useState('');
   const [phone,     setPhone]     = useState('');
   const [password,  setPassword]  = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [license,   setLicense]   = useState('');
 
   const phoneRef    = useRef<TextInput>(null);
@@ -104,8 +105,12 @@ const DriverRegistrationScreen = () => {
   };
 
   const handleRegister = () => {
-    if (!fullName.trim() || !phone.trim() || !password.trim() || !license.trim()) {
+    if (!fullName.trim() || !phone.trim() || !password.trim() || !confirmPassword.trim() || !license.trim()) {
       Alert.alert('بيانات ناقصة', 'يرجى تعبئة جميع الحقول قبل المتابعة.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('خطأ', 'كلمتا المرور غير متطابقتين.');
       return;
     }
     if (vehicleType === 'bottled' && selectedBrands.length === 0) {
@@ -135,6 +140,7 @@ const DriverRegistrationScreen = () => {
         <AmmarliInput label="الاسم الكامل"        placeholder="أدخل اسمك الكامل"            iconName="person-outline"      value={fullName}  onChangeText={setFullName} />
         <AmmarliInput label="رقم الهاتف"          placeholder="05XX XXX XXX"                iconName="call-outline"        value={phone}     onChangeText={setPhone}    keyboardType="phone-pad" />
         <AmmarliInput label="كلمة المرور"         placeholder="أدخل كلمة المرور"            iconName="lock-closed-outline" value={password}  onChangeText={setPassword} secureTextEntry isPassword />
+        <AmmarliInput label="تأكيد كلمة المرور"   placeholder="أعد إدخال كلمة المرور"       iconName="lock-closed-outline" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry isPassword />
         <AmmarliInput label="رقم لوحة الترخيص"   placeholder="رقم اللوحة (مثلاً: 12345-120-05)" iconName="card-outline"   value={license}   onChangeText={setLicense} />
       </View>
 
@@ -232,7 +238,7 @@ const DriverRegistrationScreen = () => {
       {/* زر الإنشاء */}
       <TouchableOpacity style={styles.submitButton} activeOpacity={0.8} onPress={handleRegister}>
         <Text style={styles.submitButtonText}>إنشاء حساب جديد</Text>
-        <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+        <Ionicons name='chevron-forward' size={24} color={COLORS.primary} />
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.footerLink} onPress={() => router.push('/(driver)/login')}>
@@ -251,31 +257,21 @@ const DriverRegistrationScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={28} color={COLORS.primary} />
+          <Ionicons name='chevron-forward' size={28} color={COLORS.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>انضم إلينا كسائق</Text>
         <View style={{ width: 44 }} />
       </View>
 
-      {Platform.OS === 'ios' ? (
-        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 30 }]}
-            keyboardShouldPersistTaps="always"
-          >
-            {FormContent}
-          </ScrollView>
-        </KeyboardAvoidingView>
-      ) : (
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 30 }]}
-          keyboardShouldPersistTaps="always"
+          keyboardShouldPersistTaps="handled"
         >
           {FormContent}
         </ScrollView>
-      )}
+      </KeyboardAvoidingView>
     </View>
   );
 };
@@ -294,7 +290,7 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: 15, fontWeight: '800', color: COLORS.primary, marginBottom: 12, textAlign: 'right', marginTop: 15 },
 
   // Vehicle cards
-  row:                  { flexDirection: 'row-reverse', justifyContent: 'space-between', marginBottom: 10 },
+  row:                  { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   selectionCard:        { width: CARD_W, height: 120, borderRadius: 20, borderWidth: 2, borderColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF', overflow: 'hidden' },
   selectionCardActive:  { borderColor: COLORS.secondary, shadowColor: COLORS.secondary, shadowOpacity: 0.15, elevation: 5 },
   vehicleImage:         { width: 64, height: 64 },
@@ -307,7 +303,7 @@ const styles = StyleSheet.create({
 
   // Brand grid — 3 في الصف
   brandGrid: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
     marginBottom: 10,
@@ -330,7 +326,7 @@ const styles = StyleSheet.create({
   checkBadge: {
     position: 'absolute',
     top: 6,
-    left: 6,
+    right: 6,
     width: 18,
     height: 18,
     borderRadius: 9,
@@ -340,7 +336,7 @@ const styles = StyleSheet.create({
   },
 
   // Tanker chips
-  waterTypeRow: { flexDirection: 'row-reverse', gap: 10 },
+  waterTypeRow: { flexDirection: 'row', gap: 10 },
   chip: {
     flex: 1,
     height: 85,

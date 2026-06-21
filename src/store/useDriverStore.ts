@@ -130,6 +130,7 @@ interface DriverState {
   updateDriverOrderStatus: (status: DriverOrderStatus) => void;
   completeDriverOrder: () => void;
   cancelDriverOrder: (reason: string) => void;
+  addPastTrip: (trip: PastTrip) => void;
 
   refillStock: (type: 'tanker' | 'bottled', amount?: any) => void;
   setDriverBusy: (isBusy: boolean) => void;
@@ -360,6 +361,8 @@ export const useDriverStore = create<DriverState>((set, get) => ({
         pastTrips: [cancelledTrip, ...s.pastTrips],
       };
     }),
+
+  addPastTrip: (trip) => set((s) => ({ pastTrips: [trip, ...s.pastTrips] })),
 
   // ── Inventory ─────────────────────────────────────────────────────────────
   refillStock: (type, amount) =>

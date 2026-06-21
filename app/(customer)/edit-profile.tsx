@@ -6,12 +6,12 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   Dimensions,
   StatusBar,
   Image,
   Platform,
-  I18nManager
+  I18nManager,
+  KeyboardAvoidingView
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { User, Phone, MapPin, Camera, ChevronRight } from 'lucide-react-native';
@@ -80,10 +80,12 @@ const EditProfileAlgerian = () => {
           </View>
       </View>
 
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent} 
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         {/* قسم الصورة الشخصية */}
         <View style={styles.photoContainer}>
           <View style={styles.avatarWrapper}>
@@ -161,6 +163,7 @@ const EditProfileAlgerian = () => {
           <Text style={styles.saveButtonText}>حفظ التغييرات</Text>
         </TouchableOpacity>
       </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };
@@ -177,7 +180,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   headerContent: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
@@ -233,11 +236,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Cairo-Bold',
     color: THEME_NAVY,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 10,
   },
   inputWrapper: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: '#FFF',
     borderRadius: 15,
     height: 60,

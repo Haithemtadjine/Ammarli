@@ -11,7 +11,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   Platform,
   KeyboardAvoidingView,
@@ -19,7 +18,8 @@ import {
   ActivityIndicator,
   Animated,
 } from 'react-native';
-import { useRouter, Link } from 'expo-router';
+import { useRouter, Link, useFocusEffect } from 'expo-router';
+import { BackHandler } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/store/useAuthStore';
@@ -39,8 +39,9 @@ const COLORS = {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function CustomerLoginScreen() {
+  const insets = useSafeAreaInsets();
   const router      = useRouter();
-  const insets      = useSafeAreaInsets();
+  
   const setUserRole = useAuthStore((s) => s.setUserRole);
 
   const [phone,       setPhone]       = useState('');
@@ -53,6 +54,18 @@ export default function CustomerLoginScreen() {
   const [passFocus,   setPassFocus]   = useState(false); // Can be removed later
 
   const passwordRef = useRef<TextInput>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        BackHandler.exitApp();
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription.remove();
+    }, [])
+  );
 
   // ── Shake animation ────────────────────────────────────────────────────────
   const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -111,7 +124,7 @@ export default function CustomerLoginScreen() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
 
       <KeyboardAvoidingView
@@ -128,7 +141,12 @@ export default function CustomerLoginScreen() {
         >
           {/* ── Welcome Header ────────────────────────────────────────────── */}
           <View style={styles.welcomeSection}>
-            <Text style={styles.title}>مرحباً بك مجدداً</Text>
+            <View style={{ flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+              <TouchableOpacity onPress={() => router.replace('/role-selection')} style={{ marginLeft: 15 }}>
+                <Ionicons name="arrow-forward" size={32} color={COLORS.primary} />
+              </TouchableOpacity>
+              <Text style={[styles.title, { marginBottom: 0 }, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>مرحباً بك مجدداً</Text>
+            </View>
             <Text style={styles.subtitle}>سجل دخولك لطلب المياه بسرعة وسهولة</Text>
           </View>
 
@@ -184,8 +202,8 @@ export default function CustomerLoginScreen() {
                 <ActivityIndicator color={COLORS.primary} size="small" />
               ) : (
                 <>
-                  <Ionicons name="arrow-back" size={22} color={COLORS.primary} style={{ marginRight: 8 }} />
                   <Text style={styles.loginButtonText}>تسجيل الدخول</Text>
+                  <Ionicons name='arrow-back' size={22} color={COLORS.primary} style={{ marginRight: 8 }} />
                 </>
               )}
             </TouchableOpacity>
@@ -204,7 +222,7 @@ export default function CustomerLoginScreen() {
 
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -246,7 +264,7 @@ const styles = StyleSheet.create({
   // Removed old inline input styles (handled by AmmarliInput)
 
   // Forgot
-  forgotPassBtn: { alignSelf: 'flex-end', marginTop: 12 },
+  forgotPassBtn: { alignSelf: 'flex-start', marginTop: 12 },
   forgotPassText: {
     fontFamily: 'Cairo-Bold',
     fontSize: 14,

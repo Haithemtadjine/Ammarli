@@ -56,7 +56,7 @@ const TankCapacityCard = () => {
   return (
     <View style={styles.tankCard}>
       <View style={[styles.tankHeader, { justifyContent: 'space-between', width: '100%' }]}>
-         <View style={{ flexDirection: 'row-reverse', alignItems: 'center', gap: 8 }}>
+         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <MaterialCommunityIcons name="water-percent" size={22} color={COLORS.primary} />
             <Text style={styles.tankTitle}>سعة الخزان</Text>
          </View>
@@ -301,18 +301,34 @@ export default function DriverDashboardScreen() {
     dismissOrder();
     setDriverBusy(true); // تعيين السائق إلى "مشغول" لمنع استقبال طلبات جديدة
     const orderType = resolveOrderType();
+
+    // محاكاة تفاصيل الطلبية القادمة من العميل (Backend)
+    // إذا كان الطلب قوارير، نرسل إما تشكيلة فاردو، أو طلبية 5 لترات فقط
+    const is5LitersOrder = Math.random() > 0.5;
+    const orderItems = is5LitersOrder
+      ? [{ id: 3, name: '5 لترات', qty: 20, unit: 'عبوة', price: '4.00', image: 'https://img.icons8.com/3d-fluency/94/plastic-bottle.png' }]
+      : [
+          { id: 1, name: 'فاردو 0.5 لتر', qty: 10, unit: 'شدات', price: '12.50', image: 'https://img.icons8.com/3d-fluency/94/water-bottle.png' },
+          { id: 2, name: 'فاردو 1.5 لتر', qty: 5, unit: 'شدات', price: '15.00', image: 'https://img.icons8.com/3d-fluency/94/water-bottle.png' },
+        ];
+
     router.push({
       pathname: '/(driver)/order-acceptance' as any,
       params: {
         customerName: 'ياسين',
         price:        '2500',
-        address:      '',
+        address:      'الجزائر العاصمة',
         orderType,
         distance:     '2.5 كم',
         rating:       '4.8',
+        items:        JSON.stringify(orderItems),
       },
     });
   };
+
+
+
+
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -343,7 +359,7 @@ export default function DriverDashboardScreen() {
                 <ActivityIndicator color={COLORS.primary} />
               ) : (
                 <>
-                  <Ionicons name="locate" size={18} color={COLORS.primary} style={{ marginLeft: 8 }} />
+                  <Ionicons name="locate" size={18} color={COLORS.primary} style={{ marginRight: 8 }} />
                   <Text style={styles.locationAllowText}>السماح بالوصول</Text>
                 </>
               )}
@@ -398,7 +414,7 @@ export default function DriverDashboardScreen() {
             <Ionicons name="notifications-outline" size={24} color={COLORS.primary} />
             {/* مؤشر وجود إشعارات غير مقروءة */}
             {useDriverStore(s => s.notifications.some(n => !n.isRead)) && (
-              <View style={{ position: 'absolute', top: 8, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.danger }} />
+              <View style={{ position: 'absolute', top: 8, left: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.danger }} />
             )}
           </TouchableOpacity>
           <View style={styles.toggleContainer}>
@@ -427,6 +443,7 @@ export default function DriverDashboardScreen() {
         {/* Conditional Rendering بناءً على نوع السائق */}
         {driver_type === 'tanker' ? <TankCapacityCard /> : <InventoryListCard />}
         
+
         {/* قسم الطلبات الجديدة المشترك */}
         <View style={styles.orderSection}>
            <Text style={styles.sectionTitle}>طلبات جديدة</Text>
@@ -439,7 +456,7 @@ export default function DriverDashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: COLORS.white, borderBottomLeftRadius: 20, borderBottomRightRadius: 20 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: COLORS.white, borderBottomRightRadius: 20, borderBottomLeftRadius: 20 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 15 },
   notifBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' },
   toggleContainer: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#F1F5F9', paddingHorizontal: 10, borderRadius: 20 },
@@ -447,7 +464,7 @@ const styles = StyleSheet.create({
   userSection: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   userName: { fontSize: 22, fontWeight: '900', color: COLORS.primary },
   avatar: { width: 50, height: 50, borderRadius: 16, borderWidth: 2, borderColor: COLORS.secondary },
-  statsRow: { flexDirection: 'row-reverse', gap: 15, padding: 20 },
+  statsRow: { flexDirection: 'row', gap: 15, padding: 20 },
   statCard: { flex: 1, padding: 20, borderRadius: 24, elevation: 4 },
   statLabelLight: { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: '700', textAlign: 'right' },
   statValueWhite: { fontSize: 22, fontWeight: '900', color: COLORS.white, textAlign: 'right', marginTop: 5 },
@@ -456,7 +473,7 @@ const styles = StyleSheet.create({
   
   // أنماط خاصة بالصهريج
   tankCard: { marginHorizontal: 20, marginBottom: 20, backgroundColor: COLORS.white, borderRadius: 32, padding: 25, alignItems: 'center', elevation: 2 },
-  tankHeader: { flexDirection: 'row-reverse', alignItems: 'center', gap: 8, marginBottom: 25 },
+  tankHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 25 },
   tankTitle: { fontSize: 18, fontWeight: '900', color: COLORS.primary },
   waterBadge: { backgroundColor: '#E0F2FE', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
   waterBadgeText: { fontSize: 12, fontWeight: '900', color: '#0284C7' },
@@ -473,14 +490,14 @@ const styles = StyleSheet.create({
   inventoryTitle: { fontSize: 20, fontWeight: '900', color: COLORS.primary, textAlign: 'right' },
   badge: { backgroundColor: '#E0F2FE', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
   badgeText: { fontSize: 10, fontWeight: '900', color: COLORS.primary },
-  brandScroll: { flexDirection: 'row-reverse', gap: 12, marginBottom: 25 },
+  brandScroll: { flexDirection: 'row', gap: 12, marginBottom: 25 },
   brandBtn: { width: 105, backgroundColor: '#F8FAFC', borderRadius: 20, padding: 15, alignItems: 'center', borderWidth: 2, borderColor: 'transparent' },
   brandBtnActive: { borderColor: COLORS.primary, backgroundColor: COLORS.white, elevation: 3 },
   brandCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', marginBottom: 10, elevation: 1 },
   brandName: { fontSize: 14, fontWeight: '900', color: COLORS.primary },
   brandCount: { fontSize: 10, color: COLORS.textSecondary, fontWeight: '700' },
   subTitle: { fontSize: 12, fontWeight: '900', color: COLORS.textSecondary, textAlign: 'right', marginBottom: 15 },
-  stockGrid: { flexDirection: 'row-reverse', gap: 10, marginBottom: 25 },
+  stockGrid: { flexDirection: 'row', gap: 10, marginBottom: 25 },
   stockBox: { flex: 1, height: 110, borderRadius: 20, alignItems: 'center', justifyContent: 'center', padding: 10 },
   boxLabel: { fontSize: 12, fontWeight: '900', marginBottom: 5 },
   boxVal: { fontSize: 24, fontWeight: '900', color: COLORS.primary },
@@ -488,6 +505,11 @@ const styles = StyleSheet.create({
   statusTagText: { fontSize: 10, fontWeight: '900' },
   refillBtnInv: { height: 55, backgroundColor: COLORS.primary, borderRadius: 20, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, elevation: 3 },
   refillTextInv: { fontSize: 16, fontWeight: '900', color: COLORS.white },
+  
+  testNotifBtn: { marginHorizontal: 20, marginBottom: 15, backgroundColor: COLORS.warning, height: 50, borderRadius: 15, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, elevation: 3 },
+  testNotifText: { color: COLORS.white, fontSize: 14, fontFamily: 'Cairo-Bold' },
+  
+
   
   // أنماط مشتركة أسفل الشاشة
   orderSection: { paddingHorizontal: 20, marginTop: 10 },
@@ -503,8 +525,8 @@ const styles = StyleSheet.create({
   orderPopup: {
     position: 'absolute',
     bottom: 0,
-    left: 0,
     right: 0,
+    left: 0,
     paddingTop: 12,
     backgroundColor: 'transparent',
   },
@@ -556,7 +578,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 54,
     borderRadius: 16,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,

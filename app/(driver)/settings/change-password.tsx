@@ -92,7 +92,7 @@ export default function ChangePasswordScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={26} color={COLORS.white} />
+          <Ionicons name='chevron-forward' size={26} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>تغيير كلمة المرور</Text>
         <View style={{ width: 44 }} />
@@ -216,10 +216,10 @@ const styles = StyleSheet.create({
 
   header: {
     height: 65, backgroundColor: COLORS.primary,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 20,
-    borderBottomLeftRadius: 25, borderBottomRightRadius: 25,
+    borderBottomRightRadius: 25, borderBottomLeftRadius: 25,
     elevation: 10,
   },
   headerTitle: { fontSize: 19, fontFamily: 'Cairo-Black', color: COLORS.white },
@@ -229,12 +229,12 @@ const styles = StyleSheet.create({
 
   // Success banner
   successBanner: {
-    flexDirection: 'row-reverse', alignItems: 'center', gap: 10,
+    flexDirection: 'row', alignItems: 'center', gap: 10,
     backgroundColor: COLORS.successBg,
     borderRadius: 16, padding: 16, marginBottom: 20,
     borderWidth: 1, borderColor: '#BBF7D0',
   },
-  successText: { fontSize: 15, fontFamily: 'Cairo-Bold', color: COLORS.success, textAlign: 'right' },
+  successText: { fontSize: 15, fontFamily: 'Cairo-Bold', color: COLORS.success, textAlign: 'left' },
 
   // Description box
   descBox: {
@@ -247,14 +247,14 @@ const styles = StyleSheet.create({
 
   // Form
   formContainer: { backgroundColor: COLORS.white, borderRadius: 24, padding: 20, marginBottom: 10, elevation: 2 },
-  errorText:     { fontSize: 12, fontFamily: 'Cairo-Bold', color: COLORS.danger, textAlign: 'right', marginTop: 6, marginBottom: -4 },
+  errorText:     { fontSize: 12, fontFamily: 'Cairo-Bold', color: COLORS.danger, textAlign: 'left', marginTop: 6, marginBottom: -4 },
 
   // Strength indicator
   strengthContainer: { marginTop: 16 },
-  strengthLabel:     { fontSize: 12, fontFamily: 'Cairo-Bold', color: COLORS.textSecondary, textAlign: 'right', marginBottom: 8 },
+  strengthLabel:     { fontSize: 12, fontFamily: 'Cairo-Bold', color: COLORS.textSecondary, textAlign: 'left', marginBottom: 8 },
   strengthBar:       { height: 6, backgroundColor: '#E2E8F0', borderRadius: 3, overflow: 'hidden' },
   strengthFill:      { height: '100%', borderRadius: 3 },
-  strengthValue:     { fontSize: 12, fontFamily: 'Cairo-Black', textAlign: 'right', marginTop: 6 },
+  strengthValue:     { fontSize: 12, fontFamily: 'Cairo-Black', textAlign: 'left', marginTop: 6 },
 
   // Footer
   footer:     { paddingHorizontal: 24, paddingTop: 10 },

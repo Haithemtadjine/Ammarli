@@ -9,11 +9,13 @@ import {
   TextInput,
   Dimensions,
   Platform,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  Animated
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Alert } from 'react-native';
 import { useCustomerStore } from '../../src/store/useCustomerStore';
 import * as Haptics from 'expo-haptics';
 import ErrorBoundary from '../../components/ErrorBoundary';
@@ -40,6 +42,17 @@ const BOTTLE_PRICES: any = {
 export default function OrderDetailsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const shakeAnim = React.useRef(new Animated.Value(0)).current;
+
+  const triggerShake = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    Animated.sequence([
+      Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 60, useNativeDriver: true }),
+    ]).start();
+  };
   
   const BRANDS = [
     { id: 'Guedila', name: 'قديلا', color: '#1A4C8A', logo: require('../../assets/images/brands/guedila.png') },
@@ -96,9 +109,19 @@ export default function OrderDetailsScreen() {
   };
 
   const createOrder = useCustomerStore((s) => s.createOrder);
+  const userLocation = useCustomerStore((s) => s.userLocation);
+  const draftOrder = useCustomerStore((s) => s.draftOrder);
 
   const handleOrderNow = () => {
     if (totalPrice === 0) return; // Don't order if cart is empty
+    
+    const selectedLocation = draftOrder.location;
+    
+    if (!selectedLocation) {
+      triggerShake();
+      Alert.alert('تنبيه', 'يرجى تحديد موقع التوصيل أولاً');
+      return;
+    }
     
     const orderItems: any[] = [];
     Object.keys(cart).forEach(brand => {
@@ -120,14 +143,35 @@ export default function OrderDetailsScreen() {
       type: 'Bottled',
       status: 'searching',
       price: totalPrice,
-      locationName: 'موقع التوصيل الحالي',
+      location: selectedLocation,
+      locationName: selectedLocation.address || 'موقع التوصيل الحالي',
       items: orderItems,
     });
     router.push('/(customer)/searching-driver');
   };
 
   const handleSchedule = () => {
-    router.push('/(customer)/schedule-order');
+    if (totalPrice === 0) return;
+    if (!draftOrder.location) {
+      triggerShake();
+      Alert.alert('تنبيه', 'يرجى تحديد موقع التوصيل أولاً');
+      return;
+    }
+    let titleParts: string[] = [];
+    Object.keys(cart).forEach(brand => {
+      Object.keys(cart[brand]).forEach(size => {
+        const qty = cart[brand][size];
+        if (qty > 0) {
+          titleParts.push(`${getBrandName(brand)} ${size} x${qty}`);
+        }
+      });
+    });
+    const title = titleParts.length > 0 ? titleParts.join(' | ') : "طلب مياه معبأة";
+
+    router.push({
+      pathname: '/(customer)/schedule-order',
+      params: { orderTitle: title, isTanker: "false" }
+    });
   };
 
   const getBrandName = (id: string) => {
@@ -149,7 +193,7 @@ export default function OrderDetailsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerIcon} onPress={() => router.back()}>
-          <Ionicons name="chevron-forward" size={28} color={COLORS.white} />
+          <Ionicons name='chevron-back' size={28} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>اطلب مياه معبأة</Text>
         <View style={styles.headerIcon} />
@@ -159,25 +203,27 @@ export default function OrderDetailsScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: COLORS.background }}
       >
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { paddingBottom: 200 + insets.bottom }]}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { paddingBottom: 200 + insets.bottom }]} keyboardShouldPersistTaps="handled">
           
           {/* Map Preview Section */}
-          <TouchableOpacity style={styles.mapCard} activeOpacity={0.9} onPress={handleMapPress}>
-            <View style={styles.mapImageContainer}>
-              <Image 
-                source={{ uri: 'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/3.0588,36.7538,13/600x200?access_token=YOUR_TOKEN' }}
-                style={styles.mapImage}
-                resizeMode="cover"
-              />
-              <View style={styles.mapPinOverlay}>
-                <Ionicons name="location" size={40} color={COLORS.accentYellow} />
+          <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
+            <TouchableOpacity style={styles.mapCard} activeOpacity={0.9} onPress={handleMapPress}>
+              <View style={styles.mapImageContainer}>
+                <Image 
+                  source={{ uri: 'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/3.0588,36.7538,13/600x200?access_token=YOUR_TOKEN' }}
+                  style={styles.mapImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.mapPinOverlay}>
+                  <Ionicons name="location" size={40} color={COLORS.accentYellow} />
+                </View>
               </View>
-            </View>
-            <View style={styles.addressBar}>
-              <Text style={styles.addressText}>حدد موقع التوصيل</Text>
-              <Feather name="map" size={20} color={COLORS.primaryBlue} />
-            </View>
-          </TouchableOpacity>
+              <View style={styles.addressBar}>
+                <Text style={styles.addressText}>{draftOrder.location?.address || 'حدد موقع التوصيل'}</Text>
+                <Feather name="map" size={20} color={COLORS.primaryBlue} />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
 
           {/* Brand Selection */}
           <Text style={styles.sectionTitle}>اختر العلامة التجارية</Text>
@@ -244,10 +290,6 @@ export default function OrderDetailsScreen() {
           صمام الأمان: إذا كان insets.bottom = 0 (Edge-to-Edge على بعض Android)
           يضمن MIN_BOTTOM_INSET وجود 16dp كحد أدنى فوق حافة الشاشة */}
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, MIN_BOTTOM_INSET) + 16 }]}>
-        <View style={styles.priceContainer}>
-          <Text style={styles.totalValue} adjustsFontSizeToFit numberOfLines={1}>{totalPrice} د.ج</Text>
-          <Text style={styles.totalLabel}>السعر الإجمالي</Text>
-        </View>
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.scheduleBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); handleSchedule(); }}>
             <Text style={styles.scheduleBtnText}>جدولة</Text>
@@ -268,7 +310,6 @@ const ProductCard = React.memo(({ label, subLabel, price, qty, onAdd, onSub }: a
         <View style={styles.productInfo}>
           <Text style={styles.productLabel}>{label}</Text>
           <Text style={styles.productSubLabel}>{subLabel}</Text>
-          <Text style={styles.productPrice}>{price} د.ج</Text>
         </View>
         <View style={styles.productImagePlaceholder}>
            <Image 
@@ -343,7 +384,7 @@ const styles = StyleSheet.create({
   },
   
   // Brands styles
-  sectionTitle: { fontSize: 16, fontFamily: 'Cairo-Bold', color: COLORS.textDark, textAlign: 'right', marginHorizontal: 20, marginTop: 10, marginBottom: 15 },
+  sectionTitle: { fontSize: 16, fontFamily: 'Cairo-Bold', color: COLORS.textDark, textAlign: 'left', marginHorizontal: 20, marginTop: 10, marginBottom: 15 },
   brandScroll: { paddingHorizontal: 15, paddingBottom: 10, flexDirection: 'row-reverse' },
   brandCard: {
     width: 100,
@@ -403,7 +444,7 @@ const styles = StyleSheet.create({
     zIndex: 100,
     // paddingBottom is set dynamically via inline style using insets.bottom
   },
-  priceContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  priceContainer: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   totalLabel: { fontSize: 15, fontFamily: 'Cairo-Bold', color: COLORS.textSecondary },
   totalValue: { fontSize: 22, fontFamily: 'Cairo-Bold', color: COLORS.textDark },
   actionRow: { flexDirection: 'row-reverse', gap: 12 },

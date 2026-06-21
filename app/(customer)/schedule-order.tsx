@@ -6,18 +6,18 @@ import {
   TouchableOpacity,
   ScrollView,
   Switch,
-  SafeAreaView,
   Dimensions,
   Image,
   Alert,
   Platform,
   StatusBar,
   I18nManager,
-  TextInput
+  TextInput,
+  KeyboardAvoidingView
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
-  ChevronRight, 
+  ChevronLeft, 
   Calendar, 
   Clock, 
   Heart, 
@@ -26,7 +26,7 @@ import {
   CheckCircle2, 
   ShoppingBag 
 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useCustomerStore, Order, ScheduledOrder } from '../../src/store/useCustomerStore';
 import * as Haptics from 'expo-haptics';
 
@@ -50,9 +50,14 @@ const ScheduleOrderScreen = () => {
   const addNotification = useCustomerStore((s) => s.addNotification);
   const addToFavorites = useCustomerStore((s) => s.addToFavorites);
 
+  const { orderTitle, isTanker } = useLocalSearchParams();
+
   // ملخص الطلبية ديناميكياً
+  const actualTitle = orderTitle ? String(orderTitle) : (draftOrder.tankerDetails ? `صهريج مياه ${draftOrder.tankerDetails.quantity} لتر` : "ماء جوديلا 0.5 لتر x30");
+  const actualIsTanker = isTanker === "true" || (!orderTitle && !!draftOrder.tankerDetails);
+
   const orderSummary = {
-    title: draftOrder.tankerDetails ? `صهريج مياه ${draftOrder.tankerDetails.quantity} لتر` : "ماء جوديلا 0.5 لتر x30",
+    title: actualTitle,
     status: "تم التأكيد",
     id: `ORD-${Math.floor(Math.random() * 10000)}`
   };
@@ -71,9 +76,7 @@ const ScheduleOrderScreen = () => {
     router.push('/(customer)/location-picker');
   };
 
-  // وظيفة تأكيد الجدولة والحفظ
   const handleConfirmSchedule = () => {
-    const isTanker = !!draftOrder.tankerDetails;
     const scheduledId = `SCH-${Math.floor(Math.random() * 100000)}`;
 
     const newScheduledOrder: ScheduledOrder = {
@@ -81,7 +84,7 @@ const ScheduleOrderScreen = () => {
       status: 'pending',
       title: orderSummary.title,
       schedule: `(${date} | ${time})`,
-      iconUri: isTanker 
+      iconUri: actualIsTanker 
         ? 'https://img.icons8.com/3d-fluency/94/truck.png'
         : 'https://img.icons8.com/3d-fluency/94/water-bottle.png',
     };
@@ -126,17 +129,18 @@ const ScheduleOrderScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
       
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         {/* Header Section */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <ChevronRight color={THEME_NAVY} size={28} />
+            <ChevronLeft color={THEME_NAVY} size={28} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>حفظ الطلب</Text>
           <View style={{ width: 28 }} />
         </View>
 
-        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]} showsVerticalScrollIndicator={false}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           
           {/* بطاقة ملخص الطلبية الديناميكية */}
           <View style={styles.sectionCard}>
@@ -204,7 +208,7 @@ const ScheduleOrderScreen = () => {
               </View>
             </View>
 
-            <View style={[styles.divider, { marginVertical: 5 }]} />
+            <View style={[styles.divider, { marginVertical: 5 }, { paddingTop: insets.top, paddingBottom: insets.bottom }]} />
 
             <View style={styles.optionRow}>
               <Switch 
@@ -237,6 +241,7 @@ const ScheduleOrderScreen = () => {
           </TouchableOpacity>
 
         </ScrollView>
+        </KeyboardAvoidingView>
 
         {/* Footer: زر التأكيد النهائي */}
         <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
@@ -248,16 +253,16 @@ const ScheduleOrderScreen = () => {
             }}
             activeOpacity={0.8}
           >
-            <Clock size={22} color={THEME_NAVY} strokeWidth={2.5} style={{ marginRight: 10 }} />
+            <Clock size={22} color={THEME_NAVY} strokeWidth={2.5} style={{ marginLeft: 10 }} />
             <Text style={styles.confirmButtonText}>تأكيد الجدولة</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
 
       {/* رسالة نجاح الجدولة (Toast) */}
       {showToast && (
         <View style={styles.toastContainer}>
-          <CheckCircle2 size={24} color="#FFF" style={{ marginLeft: 10 }} />
+          <CheckCircle2 size={24} color="#FFF" style={{ marginRight: 10 }} />
           <Text style={styles.toastText}>تمت عملية الجدولة بنجاح</Text>
         </View>
       )}
@@ -269,7 +274,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8F9FB' },
   safeArea: { flex: 1 },
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, height: 60, backgroundColor: '#FFF', elevation: 2,
   },
   headerTitle: { fontSize: 22, fontFamily: 'Cairo-Bold', color: THEME_NAVY },
@@ -279,50 +284,50 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF', borderRadius: 24, padding: 20, marginBottom: 30,
     elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12,
   },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  cardTitleRow: { flexDirection: 'row', alignItems: 'center' },
-  cardTitle: { fontSize: 17, fontFamily: 'Cairo-Bold', marginRight: 10, color: THEME_NAVY },
+  cardHeader: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  cardTitleRow: { flexDirection: 'row-reverse', alignItems: 'center' },
+  cardTitle: { fontSize: 17, fontFamily: 'Cairo-Bold', marginLeft: 10, color: THEME_NAVY },
   iconBox: { backgroundColor: '#F2F2F7', padding: 8, borderRadius: 12 },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F9EE', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 },
-  statusText: { color: '#34C759', fontSize: 12, fontFamily: 'Cairo-Bold', marginRight: 6 },
+  statusBadge: { flexDirection: 'row-reverse', alignItems: 'center', backgroundColor: '#E8F9EE', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 },
+  statusText: { color: '#34C759', fontSize: 12, fontFamily: 'Cairo-Bold', marginLeft: 6 },
   divider: { height: 1, backgroundColor: '#F2F2F7' },
-  orderDetailsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 15 },
-  orderText: { flex: 1, textAlign: 'right', fontSize: 15, color: THEME_NAVY, fontFamily: 'Cairo-SemiBold', marginLeft: 15 },
+  orderDetailsRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', marginTop: 15 },
+  orderText: { flex: 1, textAlign: 'left', fontSize: 15, color: THEME_NAVY, fontFamily: 'Cairo-SemiBold', marginRight: 15 },
   editActionText: { color: THEME_YELLOW, fontFamily: 'Cairo-Bold', fontSize: 14 },
-  sectionLabel: { fontSize: 18, fontFamily: 'Cairo-Bold', color: THEME_NAVY, textAlign: 'right', marginBottom: 15 },
-  pickerRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 30 },
+  sectionLabel: { fontSize: 18, fontFamily: 'Cairo-Bold', color: THEME_NAVY, textAlign: 'left', marginBottom: 15 },
+  pickerRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', marginBottom: 30 },
   pickerField: {
     backgroundColor: '#FFF', width: '48%', height: 60, borderRadius: 16,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'center',
     borderWidth: 1.5, borderColor: THEME_NAVY, elevation: 2, paddingHorizontal: 10
   },
-  pickerInput: { marginLeft: 12, fontSize: 15, fontFamily: 'Cairo-Bold', color: THEME_NAVY, flex: 1, textAlign: 'right' },
+  pickerInput: { marginRight: 12, fontSize: 15, fontFamily: 'Cairo-Bold', color: THEME_NAVY, flex: 1, textAlign: 'left' },
   optionsListCard: { backgroundColor: '#FFF', borderRadius: 24, padding: 15, marginBottom: 30, elevation: 3 },
-  optionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
-  optionInfo: { flexDirection: 'row', alignItems: 'center' },
-  optionText: { fontSize: 16, fontFamily: 'Cairo-SemiBold', color: THEME_NAVY, marginRight: 15 },
+  optionRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
+  optionInfo: { flexDirection: 'row-reverse', alignItems: 'center' },
+  optionText: { fontSize: 16, fontFamily: 'Cairo-SemiBold', color: THEME_NAVY, marginLeft: 15 },
   miniIconBg: { backgroundColor: '#F2F2F7', padding: 8, borderRadius: 10 },
   mapContainer: { height: 190, borderRadius: 28, overflow: 'hidden', marginBottom: 20, elevation: 5 },
   mapPreview: { ...StyleSheet.absoluteFillObject },
   locationOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.05)' },
   locationBubble: {
-    flexDirection: 'row', backgroundColor: '#FFF', paddingHorizontal: 18, paddingVertical: 12,
+    flexDirection: 'row-reverse', backgroundColor: '#FFF', paddingHorizontal: 18, paddingVertical: 12,
     borderRadius: 22, alignItems: 'center', elevation: 6, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8
   },
-  locationText: { fontSize: 14, fontFamily: 'Cairo-Bold', color: THEME_NAVY, marginRight: 10 },
+  locationText: { fontSize: 14, fontFamily: 'Cairo-Bold', color: THEME_NAVY, marginLeft: 10 },
   mapHint: { position: 'absolute', bottom: 12, color: '#FFF', fontSize: 12, fontFamily: 'Cairo-Bold' },
-  footer: { padding: 25, backgroundColor: '#FFF', borderTopLeftRadius: 30, borderTopRightRadius: 30, elevation: 20 },
+  footer: { padding: 25, backgroundColor: '#FFF', borderTopRightRadius: 30, borderTopLeftRadius: 30, elevation: 20 },
   confirmButton: {
     backgroundColor: THEME_YELLOW, height: 65, borderRadius: 32.5,
-    flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
+    flexDirection: 'row-reverse', justifyContent: 'center', alignItems: 'center',
     elevation: 8, shadowColor: THEME_YELLOW, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 15
   },
   confirmButtonText: { fontSize: 20, fontFamily: 'Cairo-Bold', color: THEME_NAVY },
   toastContainer: {
     position: 'absolute',
     bottom: 90, // فوق زر التأكيد
-    left: 20,
     right: 20,
+    left: 20,
     backgroundColor: '#34C759', // لون أخضر للنجاح
     borderRadius: 15,
     paddingVertical: 15,

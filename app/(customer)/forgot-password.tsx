@@ -82,7 +82,7 @@ export default function ForgotPasswordScreen() {
         }}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
-        <Ionicons name="arrow-back-outline" size={24} color={GOLD} />
+        <Ionicons name="arrow-forward-outline" size={24} color={GOLD} />
       </TouchableOpacity>
 
       <KeyboardAvoidingView 
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   inputContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1,
@@ -265,11 +265,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Cairo-SemiBold',
     paddingHorizontal: 15,
-    textAlign: 'right',
+    textAlign: 'left',
     letterSpacing: 2,
   },
   countryCodeBox: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.1)',
     height: '100%',
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     color: '#E63946',
     fontSize: 13,
     fontFamily: 'Cairo-SemiBold',
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 8,
   },
   otpContainer: {

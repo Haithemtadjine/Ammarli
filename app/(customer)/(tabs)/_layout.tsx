@@ -51,13 +51,14 @@ export default function BottomTabNavigator() {
           paddingTop: 8,
           position: 'absolute',
           bottom: 0,
-          left: 0,
           right: 0,
+          left: 0,
           elevation: 20,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -4 },
           shadowOpacity: 0.05,
           shadowRadius: 10,
+          flexDirection: 'row-reverse',
         },
       }}
     >

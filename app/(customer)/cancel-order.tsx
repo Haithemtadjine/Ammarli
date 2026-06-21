@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FDFDFD',
   },
   header: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 15,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontFamily: 'Cairo-Black',
     color: THEME_NAVY,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 30,
   },
   cardsContainer: {

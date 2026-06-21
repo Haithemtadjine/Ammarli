@@ -6,10 +6,11 @@ import {
   TouchableOpacity,
   TextInput,
   Image,
-  SafeAreaView,
   ScrollView,
   Dimensions,
   StatusBar,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -98,9 +99,10 @@ export default function CustomerRatingScreen() {
     ));
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={BG} />
 
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
         showsVerticalScrollIndicator={false}
@@ -140,11 +142,11 @@ export default function CustomerRatingScreen() {
             <TouchableOpacity
               key={idx}
               onPress={() => toggleChip(chip)}
-              style={[styles.chip, selectedChips.includes(chip) && styles.chipSelected]}
+              style={[styles.chip, selectedChips.includes(chip) && styles.chipSelected, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
               activeOpacity={0.7}
             >
               {selectedChips.includes(chip) && (
-                <Ionicons name="checkmark" size={14} color={PRIMARY} style={{ marginLeft: 4 }} />
+                <Ionicons name="checkmark" size={14} color={PRIMARY} style={{ marginRight: 4 }} />
               )}
               <Text style={[styles.chipText, selectedChips.includes(chip) && styles.chipTextSelected]}>
                 {chip}
@@ -184,7 +186,7 @@ export default function CustomerRatingScreen() {
           activeOpacity={0.85}
           disabled={submitted}
         >
-          <Ionicons name="checkmark-circle" size={22} color={PRIMARY} style={{ marginLeft: 8 }} />
+          <Ionicons name="checkmark-circle" size={22} color={PRIMARY} style={{ marginRight: 8 }} />
           <Text style={styles.submitText}>إرسال التقييم</Text>
         </TouchableOpacity>
 
@@ -193,7 +195,8 @@ export default function CustomerRatingScreen() {
         </TouchableOpacity>
 
       </ScrollView>
-    </SafeAreaView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -221,7 +224,7 @@ const styles = StyleSheet.create({
   customerName: { fontSize: 24, fontFamily: 'Cairo-Black', color: PRIMARY, marginBottom: 6 },
   questionText: { fontSize: 15, fontFamily: 'Cairo-SemiBold', color: GRAY },
   orderBadge: {
-    flexDirection: 'row-reverse', alignItems: 'center', gap: 6,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
     backgroundColor: '#F0FDF4', paddingHorizontal: 14, paddingVertical: 6,
     borderRadius: 20, marginTop: 14, borderWidth: 1, borderColor: '#BBF7D0',
   },
@@ -233,16 +236,16 @@ const styles = StyleSheet.create({
   ratingLabel:  { fontSize: 26, fontFamily: 'Cairo-Black', color: PRIMARY, marginTop: 14 },
 
   // Section header
-  sectionHeader: { width: '100%', marginBottom: 14, alignItems: 'flex-end' },
-  sectionTitle:  { fontSize: 18, fontFamily: 'Cairo-Bold', color: PRIMARY, textAlign: 'right' },
+  sectionHeader: { width: '100%', marginBottom: 14, alignItems: 'flex-start' },
+  sectionTitle:  { fontSize: 18, fontFamily: 'Cairo-Bold', color: PRIMARY, textAlign: 'left' },
 
   // Chips
   chipsContainer: {
-    flexDirection: 'row-reverse', flexWrap: 'wrap',
+    flexDirection: 'row', flexWrap: 'wrap',
     justifyContent: 'flex-start', width: '100%', marginBottom: 28,
   },
   chip: {
-    flexDirection: 'row-reverse', alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center',
     backgroundColor: '#FFFFFF', paddingHorizontal: 18, paddingVertical: 10,
     borderRadius: 25, margin: 5, borderWidth: 1.5, borderColor: '#E5E5EA',
     elevation: 1, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 3,
@@ -252,7 +255,7 @@ const styles = StyleSheet.create({
   chipTextSelected: { color: PRIMARY },
 
   // Comment
-  commentSection: { width: '100%', marginBottom: 32, alignItems: 'flex-end' },
+  commentSection: { width: '100%', marginBottom: 32, alignItems: 'flex-start' },
   textInput: {
     backgroundColor: '#FFFFFF', borderRadius: 18, padding: 15,
     width: '100%', height: 120, fontSize: 15, fontFamily: 'Cairo-SemiBold',
@@ -261,7 +264,7 @@ const styles = StyleSheet.create({
 
   // Success
   successBanner: {
-    flexDirection: 'row-reverse', alignItems: 'center', gap: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
     backgroundColor: '#F0FDF4', borderRadius: 14, padding: 14,
     borderWidth: 1, borderColor: '#BBF7D0', width: '100%', marginBottom: 16,
   },
@@ -270,10 +273,10 @@ const styles = StyleSheet.create({
   // Buttons
   submitBtn: {
     backgroundColor: YELLOW, width: '100%', height: 62, borderRadius: 31,
-    flexDirection: 'row-reverse', justifyContent: 'center', alignItems: 'center',
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
     elevation: 5, shadowColor: YELLOW, shadowOpacity: 0.3, shadowRadius: 10,
   },
-  submitText: { fontSize: 20, fontFamily: 'Cairo-Black', color: PRIMARY, marginRight: 8 },
+  submitText: { fontSize: 20, fontFamily: 'Cairo-Black', color: PRIMARY, marginLeft: 8 },
   skipBtn:    { marginTop: 18, padding: 10 },
   skipText:   { fontSize: 16, fontFamily: 'Cairo-SemiBold', color: GRAY },
 });

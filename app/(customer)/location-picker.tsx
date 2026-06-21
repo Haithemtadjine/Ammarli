@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   Dimensions,
-  SafeAreaView,
   Platform,
   Alert,
   Image,
@@ -14,7 +13,8 @@ import {
   Animated,
   FlatList,
   Keyboard,
-  ActivityIndicator
+  ActivityIndicator,
+  KeyboardAvoidingView
 } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -197,7 +197,7 @@ export default function InteractiveLocationPicker() {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
       {/* 1. Map Background */}
       {Platform.OS === 'web' ? (
         <Image 
@@ -227,7 +227,7 @@ export default function InteractiveLocationPicker() {
       </View>
 
       {/* 3. Top Search Bar */}
-      <SafeAreaView style={[styles.topOverlay, { top: insets.top + 10 }]}>
+      <View style={[styles.topOverlay, { top: insets.top + 10 }, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <View style={styles.searchCard}>
           <TouchableOpacity style={styles.searchIcon}>
              {isSearching ? <ActivityIndicator size="small" color={COLORS.primaryBlue} /> : <Feather name="search" color={COLORS.gray} size={20} />}
@@ -261,7 +261,7 @@ export default function InteractiveLocationPicker() {
             />
           </View>
         )}
-      </SafeAreaView>
+      </View>
 
       {/* 4. GPS Location Button */}
       <TouchableOpacity 
@@ -324,7 +324,7 @@ export default function InteractiveLocationPicker() {
           <Text style={styles.confirmButtonText}>تأكيد الموقع</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   searchCard: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: COLORS.white,
     height: 55,
     borderRadius: 15,
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textDark,
     flex: 1,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   searchInput: {
     flex: 1,
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   locationInfoRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'flex-end',
     width: '100%',

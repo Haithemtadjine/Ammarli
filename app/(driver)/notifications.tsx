@@ -5,13 +5,12 @@ import {
   Text,
   TouchableOpacity,
   FlatList,
-  SafeAreaView,
   StatusBar,
   Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronRight, CheckCircle2, Wallet, Calendar, AlertCircle, Bell, Truck } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { ChevronRight, CheckCircle2, Wallet, Calendar, AlertCircle, Bell, Truck } from 'lucide-react-native';
 import { useDriverStore, DriverNotification } from '../../src/store/useDriverStore';
 import { SkeletonList } from '../../components/SkeletonLoader';
 import Svg, { Circle, Path, Line } from 'react-native-svg';
@@ -95,7 +94,7 @@ export default function DriverNotificationsScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top }]}>
+      <View style={[styles.safeArea, { paddingTop: insets.top }, { paddingBottom: insets.bottom }]}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={clearNotifications} style={styles.clearBtn}>
@@ -157,7 +156,7 @@ export default function DriverNotificationsScreen() {
           }
         />
         )}
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
@@ -278,20 +277,20 @@ const styles = StyleSheet.create({
   },
   textContent: {
     flex: 1,
-    marginRight: 14,
+    marginLeft: 14,
   },
   titleText: {
     fontSize: 16,
     fontFamily: 'Cairo-Bold',
     color: THEME_NAVY,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 5,
   },
   descriptionText: {
     fontSize: 13,
     color: '#6C757D',
     fontFamily: 'Cairo-Regular',
-    textAlign: 'right',
+    textAlign: 'left',
     lineHeight: 20,
   },
   iconContainer: {

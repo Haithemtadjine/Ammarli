@@ -29,9 +29,9 @@ const DriverEarningsScreen = () => {
   };
 
   const weeklyData = [
-    { day: 'ح', value: 30 }, { day: 'س', value: 45 }, { day: 'ج', value: 40 },
-    { day: 'خ', value: 95, active: true }, // اليوم النشط
-    { day: 'أ', value: 65 }, { day: 'ث', value: 35 }, { day: 'إ', value: 20 },
+    { day: 'الأحد', value: 30 }, { day: 'السبت', value: 45 }, { day: 'الجمعة', value: 40 },
+    { day: 'الخميس', value: 95, active: true },
+    { day: 'الأربعاء', value: 65 }, { day: 'الثلاثاء', value: 35 }, { day: 'الإثنين', value: 20 },
   ];
 
   return (
@@ -45,7 +45,7 @@ const DriverEarningsScreen = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>الأرباح</Text>
         <TouchableOpacity style={styles.iconBtn}>
-          <Ionicons name="chevron-forward" size={24} color={COLORS.primary} />
+          <Ionicons name='chevron-forward' size={24} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
 
@@ -127,7 +127,7 @@ const StatItem = ({ label, value, icon, isRating }: any) => (
     <View style={[styles.statIconBox, isRating && {backgroundColor: '#FFFBEB'}]}>
        {isRating ? <Ionicons name={icon} size={20} color={COLORS.primary} /> : <MaterialCommunityIcons name={icon} size={22} color={COLORS.primary} />}
     </View>
-    <View style={{alignItems: 'flex-end'}}>
+    <View style={{alignItems: 'flex-start'}}>
        <Text style={styles.statLabel}>{label}</Text>
        <Text style={styles.statValue}>{value}</Text>
     </View>
@@ -137,7 +137,7 @@ const StatItem = ({ label, value, icon, isRating }: any) => (
 const TransactionItem = ({ name, date, amount }: any) => (
   <View style={styles.transItem}>
     <View style={styles.transAddBtn}><Ionicons name="add" size={20} color={COLORS.white} /></View>
-    <View style={{flex: 1, alignItems: 'flex-end'}}>
+    <View style={{flex: 1, alignItems: 'flex-start'}}>
        <Text style={styles.transName}>{name}</Text>
        <Text style={styles.transDate}>{date}</Text>
     </View>
@@ -155,39 +155,39 @@ const styles = StyleSheet.create({
   iconBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   scrollContent: { padding: 20 },
   balanceCard: { backgroundColor: COLORS.primary, borderRadius: 28, padding: 25, elevation: 8, shadowColor: COLORS.primary, shadowOpacity: 0.3, shadowRadius: 15 },
-  balanceInfo: { alignItems: 'flex-end', marginBottom: 20 },
+  balanceInfo: { alignItems: 'flex-start', marginBottom: 20 },
   balanceLabel: { fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: '600' },
   balanceValue: { fontSize: 38, fontWeight: '900', color: COLORS.white },
   currency: { fontSize: 18, fontWeight: '700' },
   withdrawBtn: { backgroundColor: COLORS.secondary, height: 54, borderRadius: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10 },
   withdrawText: { fontSize: 16, fontWeight: '900', color: COLORS.primary },
-  statsRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', marginTop: 20 },
-  statCard: { width: (width - 55) / 2, backgroundColor: COLORS.white, borderRadius: 20, padding: 15, flexDirection: 'row-reverse', alignItems: 'center', gap: 10, elevation: 2 },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
+  statCard: { width: (width - 55) / 2, backgroundColor: COLORS.white, borderRadius: 20, padding: 15, flexDirection: 'row', alignItems: 'center', gap: 10, elevation: 2 },
   statIconBox: { width: 42, height: 42, borderRadius: 12, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' },
   statLabel: { fontSize: 10, fontWeight: '700', color: COLORS.textSecondary },
   statValue: { fontSize: 20, fontWeight: '900', color: COLORS.primary },
-  debtCard: { backgroundColor: COLORS.white, borderRadius: 22, padding: 18, flexDirection: 'row-reverse', alignItems: 'center', marginTop: 20, borderWidth: 1, borderColor: '#FEE2E2' },
-  debtIconBox: { width: 50, height: 50, borderRadius: 15, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center', marginLeft: 15 },
-  debtInfo: { flex: 1, alignItems: 'flex-end' },
+  debtCard: { backgroundColor: COLORS.white, borderRadius: 22, padding: 18, flexDirection: 'row', alignItems: 'center', marginTop: 20, borderWidth: 1, borderColor: '#FEE2E2' },
+  debtIconBox: { width: 50, height: 50, borderRadius: 15, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+  debtInfo: { flex: 1, alignItems: 'flex-start' },
   debtLabel: { fontSize: 17, fontWeight: '900', color: COLORS.primary },
   debtSubLabel: { fontSize: 11, color: COLORS.textSecondary },
   debtAmountContainer: { alignItems: 'flex-start' },
   debtValue: { fontSize: 17, fontWeight: '900', color: COLORS.danger },
   debtStatus: { fontSize: 10, color: COLORS.danger, fontWeight: '800' },
   chartCard: { backgroundColor: COLORS.white, borderRadius: 28, padding: 20, marginTop: 20 },
-  chartTitle: { fontSize: 18, fontWeight: '900', color: COLORS.primary, textAlign: 'right', marginBottom: 20 },
-  chartContainer: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'flex-end', height: 120 },
+  chartTitle: { fontSize: 18, fontWeight: '900', color: COLORS.primary, textAlign: 'left', marginBottom: 20 },
+  chartContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', height: 120 },
   barWrapper: { alignItems: 'center', width: (width - 100) / 7 },
   barTrack: { height: 100, width: 14, backgroundColor: '#F1F5F9', borderRadius: 10, justifyContent: 'flex-end', overflow: 'hidden' },
   barFill: { width: '100%', backgroundColor: '#CBD5E1', borderRadius: 10 },
   barActive: { backgroundColor: COLORS.secondary },
-  dayLabel: { fontSize: 11, fontWeight: '800', color: COLORS.textSecondary, marginTop: 8 },
+  dayLabel: { fontSize: 9, fontWeight: '800', color: COLORS.textSecondary, marginTop: 8 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 25, marginBottom: 15 },
   sectionTitle: { fontSize: 18, fontWeight: '900', color: COLORS.primary },
   seeAllText: { fontSize: 13, color: COLORS.textSecondary, fontWeight: '700' },
   transactionsList: { paddingBottom: 20 },
-  transItem: { flexDirection: 'row-reverse', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 20, padding: 15, marginBottom: 10 },
-  transAddBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#10B981', justifyContent: 'center', alignItems: 'center', marginLeft: 12 },
+  transItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 20, padding: 15, marginBottom: 10 },
+  transAddBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#10B981', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   transName: { fontSize: 15, fontWeight: '900', color: COLORS.primary },
   transDate: { fontSize: 11, color: COLORS.textSecondary },
   transAmount: { fontSize: 15, fontWeight: '900', color: '#10B981' },

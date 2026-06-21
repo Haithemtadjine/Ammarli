@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
   },
   // Stepper
   stepperWrapper: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     backgroundColor: '#F8FAFC',
     borderRadius: 18,

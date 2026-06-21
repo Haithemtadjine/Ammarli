@@ -6,7 +6,6 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   Dimensions,
   Platform,
   StatusBar,
@@ -137,7 +136,7 @@ const AmmerliHomeScreen = () => {
               <View style={{ alignItems: 'flex-end', marginRight: 15 }}>
                 <Text style={styles.greetingText}>مرحباً، {userName}</Text>
                 {userLocation?.address && (
-                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                   <View style={{ flexDirection: 'row-reverse', alignItems: 'center', marginTop: 2 }}>
                      <Text style={{ fontFamily: 'Cairo-SemiBold', fontSize: 13, color: '#002147', marginRight: 4 }}>
                        {userLocation.address}
                      </Text>
@@ -165,9 +164,7 @@ const AmmerliHomeScreen = () => {
 
           {/* 3. Functional Water Selection Grid */}
           <View style={styles.sectionHeader}>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>الكل</Text>
-            </TouchableOpacity>
+            <View />
             <Text style={styles.sectionTitle}>اختر نوع المياه</Text>
           </View>
 
@@ -244,13 +241,13 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   scrollContent: { paddingTop: 6 },
   header: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     marginBottom: 14,
   },
-  profileSection: { flexDirection: 'row', alignItems: 'center' },
+  profileSection: { flexDirection: 'row-reverse', alignItems: 'center' },
   greetingText: { fontSize: 26, fontFamily: 'Cairo-Bold', color: '#002147' },
   notificationBtn: { padding: 8 },
   dot: {
@@ -285,7 +282,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   bannerTextContent: { flex: 1, justifyContent: 'center', alignItems: 'flex-end' },
-  bannerTitle: { color: '#FFF', fontSize: 24, fontFamily: 'Cairo-Bold', textAlign: 'right' },
+  bannerTitle: { color: '#FFF', fontSize: 24, fontFamily: 'Cairo-Bold', textAlign: 'left' },
   bannerButtonDecoration: { 
     backgroundColor: '#FFCC00', 
     paddingHorizontal: 25, 
@@ -297,7 +294,7 @@ const styles = StyleSheet.create({
   bannerImagePlaceholder: { width: 100, height: 100 },
 
   sectionHeader: { 
-    flexDirection: 'row', 
+    flexDirection: 'row-reverse', 
     justifyContent: 'space-between', 
     alignItems: 'center', 
     paddingHorizontal: 20, 
@@ -307,7 +304,7 @@ const styles = StyleSheet.create({
   seeAllText: { color: '#8E8E93', fontFamily: 'Cairo-SemiBold' },
 
   gridContainer: { 
-    flexDirection: 'row', 
+    flexDirection: 'row-reverse', 
     flexWrap: 'wrap', 
     justifyContent: 'space-between', 
     paddingHorizontal: 20,

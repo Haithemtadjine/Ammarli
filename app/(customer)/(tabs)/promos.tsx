@@ -6,10 +6,10 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   Alert,
-  Platform
+  Platform,
+  KeyboardAvoidingView
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -70,10 +70,18 @@ export default function PromotionsScreen() {
     <View style={styles.container}>
       <StatusBar hidden={false} barStyle="dark-content" />
       
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 + insets.bottom }]} showsVerticalScrollIndicator={false}>
-          
-          <Text style={styles.headerTitle}>العروض والخصومات</Text>
+      <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+          style={{ flex: 1 }}
+        >
+          <ScrollView 
+            contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 + insets.bottom }]} 
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            
+            <Text style={styles.headerTitle}>العروض والخصومات</Text>
 
           {/* Promo Code Input Section */}
           <View style={styles.section}>
@@ -114,7 +122,8 @@ export default function PromotionsScreen() {
             ))}
           </View>
         </ScrollView>
-      </SafeAreaView>
+        </KeyboardAvoidingView>
+      </View>
     </View>
   );
 }
@@ -135,7 +144,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontFamily: 'Cairo-Bold',
     color: '#000',
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 35,
   },
   section: {
@@ -145,11 +154,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Cairo-Bold',
     color: '#000',
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 15,
   },
   inputRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: '#FFF',
     borderRadius: 15,
     height: 60,
@@ -182,7 +191,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   offerCard: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: '#FFF',
     borderRadius: 20,
     padding: 15,
@@ -212,14 +221,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Cairo-Bold',
     color: THEME_NAVY,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 4,
   },
   offerSubtitle: {
     fontSize: 12,
     fontFamily: 'Cairo-Regular',
     color: '#8E8E93',
-    textAlign: 'right',
+    textAlign: 'left',
   },
   useButton: {
     backgroundColor: THEME_NAVY,

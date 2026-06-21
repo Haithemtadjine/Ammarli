@@ -9,11 +9,15 @@ import {
   Platform,
   StatusBar,
   Image,
-  TextInput
+  TextInput,
+  KeyboardAvoidingView,
+  Alert,
+  Animated,
+  Keyboard
 } from 'react-native';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useCustomerStore } from '../../src/store/useCustomerStore';
 import * as Haptics from 'expo-haptics';
 import ScreenContainer, { MIN_BOTTOM_INSET } from '../../components/ScreenContainer';
@@ -31,17 +35,49 @@ const COLORS = {
 
 export default function TankDeliveryDetailsScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { type } = useLocalSearchParams(); // Well, Spring, Ashghal
   
   const [tankLocation, setTankLocation] = useState('أرضي');
   const [floor, setFloor] = useState(1); // Floor state
-  const [quantity, setQuantity] = useState(3000);
+  const [quantity, setQuantity] = useState(0);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  React.useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setKeyboardVisible(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
+
+  const shakeAnim = React.useRef(new Animated.Value(0)).current;
+
+  const triggerShake = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    Animated.sequence([
+      Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 60, useNativeDriver: true }),
+    ]).start();
+  };
 
   // Title depends on type
   const pageTitle = type === 'Well' ? 'طلب مياه الآبار' : type === 'Spring' ? 'طلب مياه الينابيع' : 'طلب مياه أشغال';
 
   const createOrder = useCustomerStore((s) => s.createOrder);
+  const userLocation = useCustomerStore((s) => s.userLocation);
+  const draftOrder = useCustomerStore((s) => s.draftOrder);
 
   // Dynamic Price Calculation
   const totalPrice = useMemo(() => {
@@ -51,12 +87,24 @@ export default function TankDeliveryDetailsScreen() {
   }, [quantity, tankLocation, floor]);
 
   const handleOrderNow = () => {
+    if (quantity <= 0) {
+      triggerShake();
+      Alert.alert('تنبيه', 'يرجى إدخال الكمية المطلوبة باللتر أولاً');
+      return;
+    }
+    const selectedLocation = draftOrder.location;
+    if (!selectedLocation) {
+      triggerShake();
+      Alert.alert('تنبيه', 'يرجى تحديد موقع التوصيل أولاً');
+      return;
+    }
     createOrder({
       id: Math.floor(Math.random() * 100000),
       type: type as string,
       status: 'searching',
       price: totalPrice,
-      locationName: 'موقع التوصيل الحالي',
+      location: selectedLocation,
+      locationName: selectedLocation.address || 'موقع التوصيل الحالي',
       items: [{
         brand: type === 'Well' ? 'مياه آبار' : type === 'Spring' ? 'مياه ينابيع' : 'مياه أشغال',
         size: `${quantity} لتر`,
@@ -78,147 +126,170 @@ export default function TankDeliveryDetailsScreen() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="chevron-forward" size={28} color={COLORS.white} />
+        <TouchableOpacity 
+          style={[styles.backButton, { zIndex: 10, elevation: 10 }]} 
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.push('/(customer)/(tabs)' as any); // Fallback if no history
+            }
+          }}
+        >
+          <Ionicons name='chevron-back' size={28} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{pageTitle}</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView 
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: COLORS.background }}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: 200 + insets.bottom }]}
-        showsVerticalScrollIndicator={false}
       >
-        {/* Map Section */}
-        <View style={styles.mapContainer}>
-          <TouchableOpacity style={styles.mapPlaceholder} activeOpacity={0.9} onPress={() => router.push('/(customer)/location-picker')}>
-             <Image 
-               source={{ uri: 'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/3.0588,36.7538,13/600x300?access_token=YOUR_TOKEN' }}
-               style={StyleSheet.absoluteFillObject}
-               resizeMode="cover"
-             />
-             <View style={styles.mapOverlay}>
-               <Ionicons name="location" size={40} color={COLORS.primaryBlue} />
-             </View>
-          </TouchableOpacity>
-          
-          <View style={styles.locationCard}>
-             <View style={styles.locationInfo}>
-                <Text style={styles.locationTitle}>حدد موقع التوصيل</Text>
-                <Text style={styles.locationSubtitle}>42 شارع الحدائق، الجزائر</Text>
-             </View>
-             <TouchableOpacity style={styles.editIconBtn}>
-                <Feather name="edit-2" size={20} color={COLORS.primaryBlue} />
-             </TouchableOpacity>
-          </View>
-        </View>
+        <ScrollView 
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: 200 + insets.bottom }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Map Section */}
+          <Animated.View style={[styles.mapContainer, { transform: [{ translateX: shakeAnim }] }]}>
+            <TouchableOpacity style={styles.mapPlaceholder} activeOpacity={0.9} onPress={() => router.push('/(customer)/location-picker')}>
+               <Image 
+                 source={{ uri: 'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/3.0588,36.7538,13/600x300?access_token=YOUR_TOKEN' }}
+                 style={StyleSheet.absoluteFillObject}
+                 resizeMode="cover"
+               />
+               <View style={styles.mapOverlay}>
+                 <Ionicons name="location" size={40} color={COLORS.primaryBlue} />
+               </View>
+            </TouchableOpacity>
+            
+            <View style={styles.locationCard}>
+               <View style={styles.locationInfo}>
+                  <Text style={styles.locationTitle}>{draftOrder.location ? 'موقع التوصيل' : 'حدد موقع التوصيل'}</Text>
+                  <Text style={styles.locationSubtitle}>{draftOrder.location?.address || 'يرجى اختيار الموقع على الخريطة'}</Text>
+               </View>
+               <TouchableOpacity style={styles.editIconBtn}>
+                  <Feather name="edit-2" size={20} color={COLORS.primaryBlue} />
+               </TouchableOpacity>
+            </View>
+          </Animated.View>
 
-        {/* Tank Location Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>موقع الخزان</Text>
-          <View 
-            style={[styles.locationGrid, type === 'Spring' && { opacity: 0.4 }]}
-            pointerEvents={type === 'Spring' ? 'none' : 'auto'}
-          >
-            <LocationOption 
-              label="سطح المبنى" 
-              iconName="business-outline" 
-              selected={tankLocation === 'سطح'} 
-              onPress={() => setTankLocation('سطح')} 
-            />
-            <LocationOption 
-              label="تحت الأرض" 
-              iconName="layers-outline" 
-              selected={tankLocation === 'تحت'} 
-              onPress={() => setTankLocation('تحت')} 
-            />
-            <LocationOption 
-              label="أرضي" 
-              iconName="home-outline" 
-              selected={tankLocation === 'أرضي'} 
-              onPress={() => setTankLocation('أرضي')} 
-            />
+          {/* Tank Location Selection */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>موقع الخزان</Text>
+            <View 
+              style={[styles.locationGrid, type === 'Spring' && { opacity: 0.4 }]}
+              pointerEvents={type === 'Spring' ? 'none' : 'auto'}
+            >
+              <LocationOption 
+                label="سطح المبنى" 
+                iconName="business-outline" 
+                selected={tankLocation === 'سطح'} 
+                onPress={() => setTankLocation('سطح')} 
+              />
+              <LocationOption 
+                label="تحت الأرض" 
+                iconName="layers-outline" 
+                selected={tankLocation === 'تحت'} 
+                onPress={() => setTankLocation('تحت')} 
+              />
+              <LocationOption 
+                label="أرضي" 
+                iconName="home-outline" 
+                selected={tankLocation === 'أرضي'} 
+                onPress={() => setTankLocation('أرضي')} 
+              />
+            </View>
           </View>
-        </View>
 
-        {/* Floor Selection (Only if Roof is selected) */}
-        {tankLocation === 'سطح' && (
-          <View style={[styles.section, { marginTop: 15 }]}>
-            <Text style={styles.sectionTitle}>حدد رقم الطابق</Text>
+          {/* Floor Selection (Only if Roof is selected) */}
+          {tankLocation === 'سطح' && (
+            <View style={[styles.section, { marginTop: 15 }]}>
+              <Text style={styles.sectionTitle}>حدد رقم الطابق</Text>
+              <View style={styles.quantityControl}>
+                <TouchableOpacity 
+                  style={[styles.qtyBtn, floor <= 1 && { backgroundColor: '#CBD5E1' }]} 
+                  onPress={() => setFloor(prev => Math.max(1, prev - 1))}
+                  disabled={floor <= 1}
+                >
+                  <Text style={styles.qtyBtnText}>-</Text>
+                </TouchableOpacity>
+                <Text style={styles.quantityText}>الطابق {floor}</Text>
+                <TouchableOpacity 
+                  style={styles.qtyBtn} 
+                  onPress={() => setFloor(prev => prev + 1)}
+                >
+                  <Text style={styles.qtyBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Quantity Selection */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>الكمية (لتر)</Text>
             <View style={styles.quantityControl}>
               <TouchableOpacity 
-                style={[styles.qtyBtn, floor <= 1 && { backgroundColor: '#CBD5E1' }]} 
-                onPress={() => setFloor(prev => Math.max(1, prev - 1))}
-                disabled={floor <= 1}
+                style={[styles.qtyBtn, quantity <= 0 && { backgroundColor: '#CBD5E1' }]} 
+                onPress={() => setQuantity(prev => Math.max(0, prev - 500))}
+                disabled={quantity <= 0}
               >
                 <Text style={styles.qtyBtnText}>-</Text>
               </TouchableOpacity>
-              <Text style={styles.quantityText}>الطابق {floor}</Text>
+              <View style={{ flexDirection: 'row-reverse', alignItems: 'center', marginHorizontal: 15 }}>
+                <TextInput 
+                  style={{ fontSize: 22, fontFamily: 'Cairo-Bold', color: COLORS.primaryBlue, padding: 0, minWidth: 60 }}
+                  value={quantity.toString()}
+                  onChangeText={(val: string) => {
+                    let num = parseInt(val) || 0;
+                    if (num > 20000) num = 20000;
+                    setQuantity(num);
+                  }}
+                  keyboardType="numeric"
+                  textAlign="center"
+                  maxLength={5}
+                />
+                <Text style={{ fontSize: 18, fontFamily: 'Cairo-Bold', color: COLORS.primaryBlue, marginRight: 4 }}>لتر</Text>
+              </View>
               <TouchableOpacity 
-                style={styles.qtyBtn} 
-                onPress={() => setFloor(prev => prev + 1)}
+                style={[styles.qtyBtn, quantity >= 20000 && { backgroundColor: '#CBD5E1' }]} 
+                onPress={() => setQuantity(prev => Math.min(20000, prev + 500))}
+                disabled={quantity >= 20000}
               >
                 <Text style={styles.qtyBtnText}>+</Text>
               </TouchableOpacity>
             </View>
           </View>
-        )}
 
-        {/* Quantity Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>الكمية (لتر)</Text>
-          <View style={styles.quantityControl}>
-            <TouchableOpacity 
-              style={[styles.qtyBtn, quantity <= 500 && { backgroundColor: '#CBD5E1' }]} 
-              onPress={() => setQuantity(prev => Math.max(500, prev - 500))}
-              disabled={quantity <= 500}
-            >
-              <Text style={styles.qtyBtnText}>-</Text>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {/* Footer Action Bar */}
+      {!isKeyboardVisible && (
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, MIN_BOTTOM_INSET) + 16 }]}>        
+          <View style={styles.buttonRow}>
+            <TouchableOpacity style={styles.scheduleBtn} onPress={() => { 
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); 
+              if (!userLocation) {
+                triggerShake();
+                Alert.alert('تنبيه', 'يرجى تحديد موقع التوصيل أولاً');
+                return;
+              }
+              const title = `${type === 'Well' ? 'مياه آبار' : type === 'Spring' ? 'مياه ينابيع' : 'مياه أشغال'} ${quantity} لتر`;
+              router.push({
+                pathname: '/(customer)/schedule-order',
+                params: { orderTitle: title, isTanker: "true" }
+              });
+            }}>
+              <Text style={styles.scheduleBtnText}>جدولة</Text>
             </TouchableOpacity>
-            <View style={{ flexDirection: 'row-reverse', alignItems: 'center', marginHorizontal: 15 }}>
-              <TextInput 
-                style={{ fontSize: 22, fontFamily: 'Cairo-Bold', color: COLORS.primaryBlue, padding: 0, minWidth: 60 }}
-                value={quantity.toString()}
-                onChangeText={(val: string) => setQuantity(parseInt(val) || 0)}
-                keyboardType="numeric"
-                textAlign="center"
-                maxLength={5}
-              />
-              <Text style={{ fontSize: 18, fontFamily: 'Cairo-Bold', color: COLORS.primaryBlue, marginRight: 4 }}>لتر</Text>
-            </View>
-            <TouchableOpacity 
-              style={styles.qtyBtn} 
-              onPress={() => setQuantity(prev => prev + 500)}
-            >
-              <Text style={styles.qtyBtnText}>+</Text>
+            <TouchableOpacity style={styles.orderBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); handleOrderNow(); }}>
+              <Text style={styles.orderBtnText}>اطلب الآن</Text>
             </TouchableOpacity>
           </View>
         </View>
-
-
-
-      </ScrollView>
-
-      {/* Footer Action Bar
-           paddingBottom: Math.max(insets.bottom, MIN_BOTTOM_INSET) + 16
-           صمام الأمان: لا يقل عن 16dp حتى لو أرجع insets.bottom صفراً */}
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, MIN_BOTTOM_INSET) + 16 }]}>
-        <View style={styles.priceRow}>
-          <Text style={styles.priceValue} adjustsFontSizeToFit numberOfLines={1}>{totalPrice.toLocaleString()} د.ج</Text>
-          <Text style={styles.priceLabel}>السعر الإجمالي</Text>
-        </View>
-        <Text style={styles.taxNote}>شامل الضريبة ومصاريف الضخ (إن وجدت)</Text>
-        
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.scheduleBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/(customer)/schedule-order'); }}>
-            <Text style={styles.scheduleBtnText}>جدولة</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.orderBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); handleOrderNow(); }}>
-            <Text style={styles.orderBtnText}>اطلب الآن</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      )}
     </ScreenContainer>
   );
 }
@@ -321,7 +392,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontFamily: 'Cairo-Bold',
-    textAlign: 'right',
+    textAlign: 'left',
     color: COLORS.textDark,
     marginBottom: 15,
   },
@@ -395,7 +466,7 @@ const styles = StyleSheet.create({
     // paddingBottom is set dynamically via inline style using insets.bottom
   },
   priceRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
   },

@@ -81,9 +81,7 @@ export default function OrderTrackingScreen() {
              لا paddingTop هنا — ScreenContainer تولى ذلك فعلاً
              تم حذف marginTop: insets.top المُزدوج */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="chevron-forward" size={28} color={COLORS.primary} />
-          </TouchableOpacity>
+          <View style={{ width: 44 }} />
           <Text style={styles.headerTitle}>حالة الطلب</Text>
           <View style={{ width: 44 }} /> 
         </View>

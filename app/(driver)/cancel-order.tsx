@@ -11,9 +11,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { 
-  ArrowRight, 
+  ChevronRight, 
   UserX, 
   MapPinOff, 
   Wrench, 
@@ -29,6 +29,14 @@ export default function DriverCancelOrderScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const cancelDriverOrder = useDriverStore((s) => s.cancelDriverOrder);
+  const addPastTrip = useDriverStore((s) => s.addPastTrip);
+
+  const params = useLocalSearchParams<{
+    customerName?: string;
+    price?: string;
+    orderType?: string;
+    orderNumber?: string;
+  }>();
   
   const [selectedReason, setSelectedReason] = useState<number | null>(null);
 
@@ -55,8 +63,36 @@ export default function DriverCancelOrderScreen() {
     
     const finalReason = reasons.find(r => r.id === selectedReason)?.text || 'غير معروف';
 
-    cancelDriverOrder(finalReason);
-    router.replace('/(driver)/(tabs)');
+    const now = new Date();
+    const dateLabel = now.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase();
+    const timeLabel = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    
+    // Add to trips manually since active order might not be set in the store
+    addPastTrip({
+      id: params.orderNumber || String(Math.floor(10000 + Math.random() * 90000)),
+      date: dateLabel,
+      time: timeLabel,
+      orderSummary: getOrderLabel(params.orderType),
+      customerName: params.customerName || 'زبون غير معروف',
+      deliveryType: 'Cancelled Delivery',
+      amount: Number(params.price || 0),
+      status: 'Cancelled',
+      cancelReason: finalReason,
+    });
+
+    cancelDriverOrder(finalReason); // clear active order if it exists
+    router.replace('/(driver)/(tabs)' as any);
+  };
+
+  // مساعد لترجمة نوع الطلب
+  const getOrderLabel = (type?: string) => {
+    switch (type) {
+      case 'bottles': return 'مياه معدنية معبأة';
+      case 'well_water': return 'صهريج مياه آبار';
+      case 'construction_water': return 'صهريج مياه أشغال';
+      case 'spring_water': return 'مياه ينابيع طبيعية';
+      default: return 'طلب مياه';
+    }
   };
 
   return (
@@ -68,7 +104,7 @@ export default function DriverCancelOrderScreen() {
         <View style={{ width: 44 }} /> {/* لضمان توسط العنوان تماماً */}
         <Text style={styles.headerTitle}>إلغاء الطلب</Text>
         <TouchableOpacity style={styles.backButton} activeOpacity={0.6} onPress={() => router.back()}>
-          <ArrowRight color={THEME_NAVY} size={28} />
+          <ChevronRight color={THEME_NAVY} size={32} />
         </TouchableOpacity>
       </View>
 
@@ -152,7 +188,7 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontFamily: 'Cairo-Black',
     color: THEME_NAVY,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 30,
   },
   cardsContainer: {
@@ -160,7 +196,7 @@ const styles = StyleSheet.create({
   },
   reasonCard: {
     backgroundColor: '#FFF',
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderRadius: 20,
@@ -182,7 +218,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Cairo-SemiBold',
     color: THEME_NAVY,
     textAlign: 'center',
-    marginRight: 15,
+    marginLeft: 15,
   },
   selectedCardText: {
     fontFamily: 'Cairo-Bold',

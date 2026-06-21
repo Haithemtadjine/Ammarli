@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   TextInput,
   Image,
-  SafeAreaView,
   ScrollView,
   Dimensions,
   Platform,
-  StatusBar
+  StatusBar,
+  KeyboardAvoidingView
 } from 'react-native';
 import { Star, Check, ChevronRight } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -94,13 +94,15 @@ export default function DriverRatingScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
       
-      <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 8 }]} 
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView 
+          contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 40 }]} 
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         {/* Top Driver Card */}
         <View style={styles.driverSection}>
           <View style={styles.avatarWrapper}>
@@ -166,7 +168,8 @@ export default function DriverRatingScreen() {
           <Text style={styles.skipText}>تخطي</Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -221,7 +224,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   starsRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
   },
   ratingLabel: {
     fontSize: 26,
@@ -238,7 +241,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Cairo-Bold',
     color: THEME_NAVY,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   chipsContainer: {
     flexDirection: 'row-reverse',

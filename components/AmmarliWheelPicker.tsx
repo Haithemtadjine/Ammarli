@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   modalHeader: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 15,

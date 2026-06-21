@@ -137,7 +137,7 @@ const OrderCard = ({ category, title, date, customer, price, status, cancelReaso
 
       {status === 'ملغي' && cancelReason ? (
         <View style={{ marginTop: 10, padding: 10, backgroundColor: '#FEF2F2', borderRadius: 10 }}>
-          <Text style={{ fontFamily: 'Cairo-Bold', fontSize: 13, color: COLORS.danger, textAlign: 'right' }}>السبب: {cancelReason}</Text>
+          <Text style={{ fontFamily: 'Cairo-Bold', fontSize: 13, color: COLORS.danger, textAlign: 'left' }}>السبب: {cancelReason}</Text>
         </View>
       ) : null}
 
@@ -282,12 +282,12 @@ const styles = StyleSheet.create({
   container:   { flex: 1, backgroundColor: COLORS.background },
 
   // Header
-  header:      { paddingHorizontal: 20, paddingTop: 15, paddingBottom: 8, alignItems: 'flex-end', gap: 6 },
+  header:      { paddingHorizontal: 20, paddingTop: 15, paddingBottom: 8, alignItems: 'flex-start', gap: 6 },
   headerTitle: { fontSize: 28, fontFamily: 'Cairo-Black', color: COLORS.primary },
 
   // Banner
   banner: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     backgroundColor: '#EEF2FF',
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
 
   // Tabs
   tabsContainer: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
@@ -315,8 +315,8 @@ const styles = StyleSheet.create({
   activeTabIndicator: {
     position: 'absolute',
     bottom: -1,
-    left: 0,
     right: 0,
+    left: 0,
     height: 3,
     backgroundColor: COLORS.primary,
     borderRadius: 2,
@@ -326,13 +326,13 @@ const styles = StyleSheet.create({
 
   // Summary
   summaryRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 12,
     gap: 10,
   },
   summaryChip: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.white,
     borderRadius: 12,
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 10,
   },
-  cardMain:      { flexDirection: 'row-reverse', alignItems: 'center' },
+  cardMain:      { flexDirection: 'row', alignItems: 'center' },
   iconContainer: {
     width: 50,
     height: 50,
@@ -371,15 +371,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 15,
   },
-  infoContainer: { flex: 1, alignItems: 'flex-end' },
+  infoContainer: { flex: 1, alignItems: 'flex-start' },
   orderTitle:    { fontSize: 16, fontFamily: 'Cairo-Bold',    color: COLORS.primary      },
   orderDate:     { fontSize: 12, fontFamily: 'Cairo-Regular', color: COLORS.textSecondary, marginTop: 2 },
-  customerRow:   { flexDirection: 'row-reverse', alignItems: 'center', marginTop: 7, gap: 4 },
+  customerRow:   { flexDirection: 'row', alignItems: 'center', marginTop: 7, gap: 4 },
   customerName:  { fontSize: 13, fontFamily: 'Cairo-Bold',    color: COLORS.textSecondary },
 
   // Card Footer
   cardFooter: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 14,

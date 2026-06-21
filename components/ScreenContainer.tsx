@@ -109,8 +109,8 @@ export default function ScreenContainer({
    */
   const pt = edges.includes('top')    ? insets.top                                    : 0;
   const pb = edges.includes('bottom') ? Math.max(insets.bottom, MIN_BOTTOM_INSET)     : 0;
-  const pl = edges.includes('left')   ? insets.left                                   : 0;
-  const pr = edges.includes('right')  ? insets.right                                  : 0;
+  const pl = edges.includes('left')   ? insets.right: 0;
+  const pr = edges.includes('right')  ? insets.left: 0;
 
   return (
     <View

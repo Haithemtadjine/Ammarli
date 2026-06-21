@@ -7,7 +7,7 @@
 import React, { useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  SafeAreaView, StatusBar, Platform, KeyboardAvoidingView,
+  StatusBar, Platform, KeyboardAvoidingView,
   ScrollView, ActivityIndicator, Animated, Modal, FlatList,
 } from 'react-native';
 import { useRouter, Link } from 'expo-router';
@@ -43,14 +43,14 @@ const WILAYAS = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function CustomerRegisterScreen() {
+  const insets = useSafeAreaInsets();
   const router      = useRouter();
-  const insets      = useSafeAreaInsets();
+  
   const setUserRole = useAuthStore((s) => s.setUserRole);
   const setProfile  = useAuthStore((s) => s.setUserProfile);
 
   const [name,        setName]        = useState('');
   const [phone,       setPhone]       = useState('');
-  const [email,       setEmail]       = useState('');
   const [password,    setPassword]    = useState('');
   const [confirm,     setConfirm]     = useState('');
   const [wilaya,      setWilaya]      = useState('');
@@ -61,14 +61,12 @@ export default function CustomerRegisterScreen() {
   // Errors
   const [nameErr,    setNameErr]    = useState('');
   const [phoneErr,   setPhoneErr]   = useState('');
-  const [emailErr,   setEmailErr]   = useState('');
   const [passErr,    setPassErr]    = useState('');
   const [confirmErr, setConfirmErr] = useState('');
   const [wilayaErr,  setWilayaErr]  = useState('');
 
   // Refs
   const phoneRef   = useRef<TextInput>(null);
-  const emailRef   = useRef<TextInput>(null);
   const passRef    = useRef<TextInput>(null);
   const confirmRef = useRef<TextInput>(null);
 
@@ -96,15 +94,12 @@ export default function CustomerRegisterScreen() {
   // Validation
   const validate = () => {
     let ok = true;
-    setNameErr(''); setPhoneErr(''); setEmailErr(''); setPassErr(''); setConfirmErr(''); setWilayaErr('');
+    setNameErr(''); setPhoneErr(''); setPassErr(''); setConfirmErr(''); setWilayaErr('');
     
     if (!name.trim()) { setNameErr('الاسم الكامل مطلوب'); ok = false; }
     
     if (!phone.trim()) { setPhoneErr('رقم الهاتف مطلوب'); ok = false; }
     else if (!/^0\d{9}$/.test(phone.trim())) { setPhoneErr('رقم هاتف صحيح (10 أرقام يبدأ بـ 0)'); ok = false; }
-    
-    if (!email.trim()) { setEmailErr('البريد الإلكتروني مطلوب'); ok = false; }
-    else if (!/^\S+@\S+\.\S+$/.test(email.trim())) { setEmailErr('بريد إلكتروني غير صالح'); ok = false; }
 
     if (!password) { setPassErr('كلمة المرور مطلوبة'); ok = false; }
     else if (password.length < 6) { setPassErr('6 أحرف على الأقل'); ok = false; }
@@ -140,13 +135,13 @@ export default function CustomerRegisterScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={C.white} />
 
       {/* ── Header ────────────────────────────────────────────────────────── */}
-      <View style={[styles.header, { paddingTop: insets.top > 0 ? 0 : 12 }]}>
+      <View style={[styles.header, { paddingTop: insets.top > 0 ? 0 : 12 }, { paddingBottom: insets.bottom }]}>
         <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={24} color={C.primary} />
+          <Ionicons name='arrow-forward' size={24} color={C.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>إنشاء حساب جديد</Text>
         <View style={{ width: 44 }} />
@@ -188,25 +183,9 @@ export default function CustomerRegisterScreen() {
               error={phoneErr}
               isValid={phone.length === 10}
               onChangeText={(t) => { setPhone(t); setPhoneErr(''); }}
-              onSubmitEditing={() => emailRef.current?.focus()}
-              blurOnSubmit={false}
-              maxLength={10}
-            />
-
-            {/* ── Email ───────────────────────────────────────────────────── */}
-            <AmmarliInput
-              ref={emailRef}
-              label="البريد الإلكتروني"
-              iconName="mail-outline"
-              placeholder="example@email.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              returnKeyType="next"
-              value={email}
-              error={emailErr}
-              onChangeText={(t) => { setEmail(t); setEmailErr(''); }}
               onSubmitEditing={() => passRef.current?.focus()}
               blurOnSubmit={false}
+              maxLength={10}
             />
 
             {/* ── Password ─────────────────────────────────────────────────── */}
@@ -277,8 +256,8 @@ export default function CustomerRegisterScreen() {
                 <ActivityIndicator color={C.primary} size="small" />
               ) : (
                 <>
-                  <Ionicons name="arrow-back" size={22} color={C.primary} style={{ marginRight: 8 }} />
                   <Text style={styles.regText}>إنشاء حساب</Text>
+                  <Ionicons name='arrow-back' size={22} color={C.primary} style={{ marginRight: 8 }} />
                 </>
               )}
             </TouchableOpacity>
@@ -351,7 +330,7 @@ export default function CustomerRegisterScreen() {
         </View>
       </Modal>
 
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -388,7 +367,7 @@ const styles = StyleSheet.create({
   // Input
   label: { fontFamily: 'Cairo-Bold', fontSize: 13, color: C.primary, marginBottom: 8, textAlign: 'right', opacity: 0.85 },
   inputBox: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     height: 64,
     backgroundColor: C.white,
     borderRadius: 32,
@@ -418,7 +397,7 @@ const styles = StyleSheet.create({
   errText: { fontFamily: 'Cairo-Regular', fontSize: 12, color: C.error, marginTop: 5, textAlign: 'right' },
 
   // Strength bar
-  strRow:   { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8 },
+  strRow:   { flexDirection: 'row-reverse', alignItems: 'center', marginTop: 8, gap: 8 },
   strTrack: { flex: 1, height: 4, backgroundColor: '#E5E7EB', borderRadius: 2, overflow: 'hidden' },
   strFill:  { height: '100%', borderRadius: 2 },
   strLabel: { fontFamily: 'Cairo-Regular', fontSize: 11, minWidth: 36, textAlign: 'right' },
@@ -469,7 +448,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: { fontFamily: 'Cairo-Bold', fontSize: 18, color: C.primary },
   searchBox: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     backgroundColor: '#F1F5F9',
     borderRadius: 16,

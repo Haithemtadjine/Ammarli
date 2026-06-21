@@ -89,16 +89,16 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     bottom: 0,
-    left: 0,
     right: 0,
+    left: 0,
     height: 90,
     backgroundColor: COLORS.white,
-    flexDirection: 'row-reverse', // RTL Support
+    flexDirection: 'row', // RTL Support
     justifyContent: 'space-around',
     alignItems: 'center',
     paddingHorizontal: 15,
-    borderTopLeftRadius: 35,
     borderTopRightRadius: 35,
+    borderTopLeftRadius: 35,
     // Premium Uber Style Shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -10 },

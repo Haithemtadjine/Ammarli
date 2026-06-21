@@ -5,7 +5,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   Dimensions,
   Platform,
@@ -93,7 +92,7 @@ const styles = StyleSheet.create({
     // paddingTop is set dynamically via inline style using insets.top
   },
   headerContent: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
@@ -136,13 +135,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Cairo-Bold',
     color: THEME_NAVY,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 10,
   },
   cardContent: {
     fontSize: 16,
     color: '#333',
-    textAlign: 'right',
+    textAlign: 'left',
     lineHeight: 26,
     fontFamily: 'Cairo-SemiBold',
   },

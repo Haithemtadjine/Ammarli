@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   Dimensions,
-  SafeAreaView,
   Platform,
   ActivityIndicator,
   Animated,
@@ -108,17 +107,14 @@ export default function SearchingDriverScreen() {
       )}
 
       {/* 2. Top Bar */}
-      <SafeAreaView style={[styles.topOverlay, { top: insets.top + 10 }]}>
+      <View style={[styles.topOverlay, { top: insets.top + 10 }, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <View style={styles.locationBar}>
-          <TouchableOpacity style={styles.backButton} onPress={handleCancel}>
-            <ArrowRight color={COLORS.primaryBlue} size={24} />
-          </TouchableOpacity>
           <View style={styles.locationInfo}>
             <Text style={styles.locationText} numberOfLines={1}>{locationName}</Text>
             <Ionicons name="location" color={COLORS.primaryBlue} size={18} style={{marginLeft: 8}} />
           </View>
         </View>
-      </SafeAreaView>
+      </View>
 
       {/* 3. Bottom Sheet */}
       <View style={[styles.bottomSheet, { paddingBottom: insets.bottom + 16 }]}>
@@ -134,10 +130,7 @@ export default function SearchingDriverScreen() {
         </View>
 
         <View style={styles.orderCard}>
-          <View style={styles.priceContainer}>
-             <Text style={styles.priceValue}>{price} دينار</Text>
-          </View>
-          <View style={styles.serviceTextContainer}>
+          <View style={[styles.serviceTextContainer, { flex: 1 }]}>
              <Text style={styles.serviceLabel}>الخدمة المختارة:</Text>
              <Text style={styles.serviceName}>{serviceName}</Text>
           </View>
@@ -171,7 +164,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   locationBar: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: COLORS.white,
     height: 55,
     borderRadius: 30,
@@ -183,7 +176,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 10,
   },
-  locationInfo: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginRight: 10 },
+  locationInfo: { flex: 1, flexDirection: 'row-reverse', justifyContent: 'flex-end', alignItems: 'center', marginRight: 10 },
   locationText: { fontSize: 16, fontFamily: 'Cairo-Bold', color: COLORS.primaryBlue },
   backButton: { padding: 5 },
 
@@ -211,7 +204,7 @@ const styles = StyleSheet.create({
   loadingBarActive: { width: '45%', height: '100%', backgroundColor: COLORS.primaryBlue, borderRadius: 2 },
 
   orderCard: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: COLORS.white,
     borderRadius: 20,
     padding: 15,
@@ -232,7 +225,7 @@ const styles = StyleSheet.create({
   serviceName: { fontSize: 16, fontFamily: 'Cairo-Bold', color: COLORS.primaryBlue },
   serviceIcon: { width: 50, height: 50, backgroundColor: COLORS.primaryBlue, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
 
-  footerRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+  footerRow: { flexDirection: 'row-reverse', justifyContent: 'center', alignItems: 'center' },
   footerNote: { textAlign: 'center', color: COLORS.gray, fontFamily: 'Cairo-SemiBold', fontSize: 13, marginBottom: 25 },
   cancelButton: {
     backgroundColor: COLORS.accentYellow,

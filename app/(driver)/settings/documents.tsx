@@ -14,7 +14,7 @@ export default function DocumentsScreen() {
         <View style={{ width: 44 }} />
         <Text style={styles.headerTitle}>الوثائق والرخص</Text>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={26} color="#003366" />
+          <Ionicons name='chevron-forward' size={26} color="#003366" />
         </TouchableOpacity>
       </View>
       <View style={styles.content}>
@@ -26,7 +26,7 @@ export default function DocumentsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, height: 60, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, height: 60, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   headerTitle: { fontSize: 18, fontFamily: 'Cairo-Black', color: '#003366' },
   backButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
   content: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },

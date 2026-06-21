@@ -5,7 +5,6 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   Dimensions,
   Platform,
   StatusBar

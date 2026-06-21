@@ -1,10 +1,10 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView, 
   StatusBar,
   TextInput,
   KeyboardAvoidingView,
@@ -16,6 +16,7 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 export default function SecurityScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   
   const [oldPassword, setOldPassword] = useState('');
@@ -64,7 +65,7 @@ export default function SecurityScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -86,7 +87,7 @@ export default function SecurityScreen() {
           {/* Old Password */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>كلمة السر القديمة</Text>
-            <View style={[styles.inputContainer, errors.old && styles.inputError]}>
+            <View style={[styles.inputContainer, errors.old && styles.inputError, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
               <TouchableOpacity onPress={() => setShowOldPass(!showOldPass)} style={styles.eyeBtn}>
                 <Feather name={showOldPass ? "eye-off" : "eye"} size={20} color="#8E8E93" />
               </TouchableOpacity>
@@ -173,7 +174,7 @@ export default function SecurityScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Cairo-Regular',
     color: '#8E8E93',
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 30,
     lineHeight: 24,
   },
@@ -200,10 +201,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Cairo-Bold',
     color: '#012047',
     marginBottom: 8,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   inputContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     backgroundColor: '#F8F9FA',
     borderRadius: 16,
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
     color: '#E63946',
     fontSize: 13,
     fontFamily: 'Cairo-SemiBold',
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 6,
   },
   saveBtn: {

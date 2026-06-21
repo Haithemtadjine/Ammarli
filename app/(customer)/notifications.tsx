@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   FlatList,
-  SafeAreaView,
   StatusBar,
   Platform,
   Animated,
@@ -93,7 +92,7 @@ export default function NotificationsScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top }]}>
+      <View style={[styles.safeArea, { paddingTop: insets.top }, { paddingBottom: insets.bottom }]}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={clearNotifications} style={styles.clearBtn}>
@@ -155,7 +154,7 @@ export default function NotificationsScreen() {
           }
         />
         )}
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
@@ -172,7 +171,7 @@ const styles = StyleSheet.create({
 
   // ─── Header ────────────────────────────────────────────────────────────────
   header: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
@@ -232,7 +231,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     marginBottom: 16,
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     overflow: 'hidden',
     elevation: 4,
     shadowColor: THEME_NAVY,
@@ -254,7 +253,7 @@ const styles = StyleSheet.create({
     padding: 18,
   },
   cardHeader: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
@@ -273,7 +272,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   },
   contentRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'flex-start',
   },
   textContent: {
@@ -284,14 +283,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Cairo-Bold',
     color: THEME_NAVY,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 5,
   },
   descriptionText: {
     fontSize: 13,
     color: '#6C757D',
     fontFamily: 'Cairo-Regular',
-    textAlign: 'right',
+    textAlign: 'left',
     lineHeight: 20,
   },
   iconContainer: {

@@ -13,10 +13,33 @@ import {
   Cairo_700Bold,
   useFonts,
 } from '@expo-google-fonts/cairo';
-import { SplashScreen, Stack } from 'expo-router';
+import { SplashScreen, Stack, router } from 'expo-router';
+import * as Notifications from 'expo-notifications';
+import { setupPushNotifications } from '../src/services/notificationService';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+import { I18nManager, Platform } from 'react-native';
+
+// Force RTL globally for the entire app (Mobile)
+I18nManager.allowRTL(true);
+I18nManager.forceRTL(true);
+
+// Polyfill DOMException to prevent runtime errors with certain Babel/Metro configurations
+if (typeof global.DOMException === 'undefined') {
+  (global as any).DOMException = class DOMException extends Error {
+    constructor(message?: string, name?: string) {
+      super(message);
+      this.name = name || 'DOMException';
+    }
+  };
+}
+
+// Force RTL globally for Web
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  document.documentElement.dir = 'rtl';
+}
 
 // Initialize i18n side-effect (must be imported before any screen renders)
 import '../src/shared/localization/i18n';
@@ -32,10 +55,76 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    // إعداد قنوات الإشعارات والصلاحيات
+    setupPushNotifications();
+
+    // الاستماع للتفاعل مع إشعارات النظام
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response: Notifications.NotificationResponse) => {
+        const actionId = response.actionIdentifier;
+        const data = response.notification.request.content.data as Record<string, string>;
+        const notifType = data?.type;
+
+        // ── 1. الزبون ضغط على زر "قبول" في إشعار طلبية جديدة ─────────────
+        if (actionId === 'accept' || (actionId === Notifications.DEFAULT_ACTION_IDENTIFIER && notifType === 'NEW_ORDER')) {
+          router.push({
+            pathname: '/(driver)/order-acceptance' as any,
+            params: {
+              customerName: data.customerName ?? 'زبون جديد',
+              price:        data.price        ?? '2500',
+              address:      data.address      ?? 'الجزائر العاصمة',
+              orderType:    data.orderType    ?? 'spring_water',
+              distance:     data.distance     ?? '2.5 كم',
+              rating:       data.rating       ?? '4.8',
+              items: JSON.stringify([
+                {
+                  id: 1,
+                  name: 'مياه',
+                  qty: 1,
+                  unit: 'طلبية',
+                  price: data.price ?? '2500',
+                  image: 'https://img.icons8.com/3d-fluency/94/water-bottle.png',
+                },
+              ]),
+            },
+          });
+          return;
+        }
+
+        // ── 2. زر "رفض" من إشعار طلبية جديدة ─────────────────────────────
+        if (actionId === 'decline') {
+          console.log('Driver declined the order from background notification');
+          return;
+        }
+
+        // ── 3. ضغط على إشعار "طلبية قيد التوصيل" (ACTIVE_ORDER) ──────────
+        if (actionId === Notifications.DEFAULT_ACTION_IDENTIFIER && notifType === 'ACTIVE_ORDER') {
+          router.push({
+            pathname: '/(driver)/order-details' as any,
+            params: {
+              customerName: data.customerName ?? 'الزبون',
+              price:        data.price        ?? '2500',
+              address:      data.address      ?? 'الجزائر العاصمة',
+              orderType:    data.orderType    ?? 'spring_water',
+              distance:     data.distance     ?? '2.5 كم',
+              orderNumber:  data.orderNumber  ?? '',
+            },
+          });
+        }
+
+        // ── 4. الزبون ضغط على إشعار تتبع طلبيته ─────────────────────────
+        if (actionId === Notifications.DEFAULT_ACTION_IDENTIFIER && notifType === 'CUSTOMER_ORDER_TRACKING') {
+          router.push('/(customer)/order-tracking' as any);
+        }
+      }
+    );
+
     if (fontsLoaded || fontError) {
       // Hide the native splash → our custom /splash screen takes over
       SplashScreen.hideAsync();
     }
+
+    return () => subscription.remove();
   }, [fontsLoaded, fontError]);
 
   // NOTE: We always render the Stack so expo-router can process

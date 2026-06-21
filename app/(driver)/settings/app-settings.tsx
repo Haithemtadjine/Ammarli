@@ -25,7 +25,7 @@ const SettingItem = ({ icon, label, subLabel, showArrow, onPress }: any) => (
       <Text style={styles.itemLabel}>{label}</Text>
       {subLabel && <Text style={styles.itemSubLabel}>{subLabel}</Text>}
     </View>
-    {showArrow && <Ionicons name="chevron-back" size={18} color="#CBD5E1" />}
+    {showArrow && <Ionicons name='chevron-back' size={18} color="#CBD5E1" />}
   </TouchableOpacity>
 );
 
@@ -66,7 +66,7 @@ const AppSettingsScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={26} color={COLORS.white} />
+          <Ionicons name='chevron-forward' size={26} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>الإعدادات والأمان</Text>
         <View style={{ width: 44 }} />
@@ -132,24 +132,24 @@ const styles = StyleSheet.create({
   container:    { flex: 1, backgroundColor: COLORS.background },
   header: {
     height: 65, backgroundColor: COLORS.primary,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 20,
-    borderBottomLeftRadius: 25, borderBottomRightRadius: 25,
+    borderBottomRightRadius: 25, borderBottomLeftRadius: 25,
     elevation: 10,
   },
   headerTitle:    { fontSize: 19, fontFamily: 'Cairo-Black', color: COLORS.white },
   backButton:     { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
   scrollContent:  { paddingHorizontal: 20, paddingTop: 25, paddingBottom: 40 },
-  sectionTitle:   { fontSize: 16, fontFamily: 'Cairo-Black', color: COLORS.primary, textAlign: 'right', marginBottom: 12, marginTop: 10 },
+  sectionTitle:   { fontSize: 16, fontFamily: 'Cairo-Black', color: COLORS.primary, textAlign: 'left', marginBottom: 12, marginTop: 10 },
   card: {
     backgroundColor: COLORS.white, borderRadius: 20, marginBottom: 25,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2,
   },
-  itemRow:        { flexDirection: 'row-reverse', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 14 },
-  iconContainer:  { width: 44, height: 44, borderRadius: 22, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center', marginLeft: 15 },
-  labelContainer: { flex: 1, alignItems: 'flex-end' },
-  itemLabel:      { flex: 1, fontSize: 16, fontFamily: 'Cairo-Bold', color: COLORS.primary, textAlign: 'right' },
+  itemRow:        { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 14 },
+  iconContainer:  { width: 44, height: 44, borderRadius: 22, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+  labelContainer: { flex: 1, alignItems: 'flex-start' },
+  itemLabel:      { flex: 1, fontSize: 16, fontFamily: 'Cairo-Bold', color: COLORS.primary, textAlign: 'left' },
   itemSubLabel:   { fontSize: 12, fontFamily: 'Cairo-SemiBold', color: COLORS.textSecondary },
   divider:        { height: 1, backgroundColor: COLORS.border, marginHorizontal: 15 },
 });

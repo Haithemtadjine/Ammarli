@@ -6,13 +6,13 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   Dimensions,
   LayoutAnimation,
   Platform,
   UIManager,
-  I18nManager
+  I18nManager,
+  KeyboardAvoidingView
 } from 'react-native';
 import { 
   ChevronRight, 
@@ -80,7 +80,7 @@ const HelpSupportScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={THEME_NAVY} />
       
-      <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top }]}>
+      <View style={[styles.safeArea, { paddingTop: insets.top }, { paddingBottom: insets.bottom }]}>
         {/* Header Section */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
@@ -103,7 +103,8 @@ const HelpSupportScreen = () => {
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {/* قسم الفئات */}
           <Text style={styles.sectionLabel}>الفئات</Text>
           <CategoryCard title="الحساب والدفع" icon={CreditCard} />
@@ -137,7 +138,8 @@ const HelpSupportScreen = () => {
             ))}
           </View>
         </ScrollView>
-      </SafeAreaView>
+        </KeyboardAvoidingView>
+      </View>
     </View>
   );
 };
@@ -165,7 +167,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   headerTop: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
@@ -179,7 +181,7 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   searchContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: '#FFF', // تم التعديل ليطابق الصورة
     height: 55,
     borderRadius: 15,
@@ -204,11 +206,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Cairo-Bold',
     color: THEME_NAVY,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 15,
   },
   categoryCard: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: '#FFF',
     borderRadius: 20,
     height: 85,
@@ -223,7 +225,7 @@ const styles = StyleSheet.create({
   },
   categoryContent: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
@@ -259,7 +261,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   faqHeader: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 22,
@@ -277,7 +279,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.7)',
     fontSize: 15,
     lineHeight: 24,
-    textAlign: 'right',
+    textAlign: 'left',
     fontFamily: 'Cairo-SemiBold',
   },
 });

@@ -59,7 +59,7 @@ export default function PersonalInfoScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} activeOpacity={0.7} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={24} color={COLORS.primary} />
+          <Ionicons name='chevron-forward' size={24} color={COLORS.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>المعلومات الشخصية</Text>
         <View style={{ width: 44 }} />
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   avatar:     { width: '100%', height: '100%', borderRadius: 62 },
   cameraBtn:  {
-    position: 'absolute', bottom: 0, right: 5,
+    position: 'absolute', bottom: 0, left: 5,
     backgroundColor: COLORS.white,
     width: 40, height: 40, borderRadius: 20,
     justifyContent: 'center', alignItems: 'center',
@@ -181,14 +181,14 @@ const styles = StyleSheet.create({
   // Form
   formContainer: { width: '100%' },
   infoBox: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     backgroundColor: '#F1F5F9',
     borderRadius: 16, padding: 18,
     marginTop: 30, alignItems: 'center', gap: 12,
   },
   infoText: {
     flex: 1, fontSize: 14, fontFamily: 'Cairo-Bold',
-    lineHeight: 22, color: COLORS.primary, textAlign: 'right',
+    lineHeight: 22, color: COLORS.primary, textAlign: 'left',
   },
 
   // Footer

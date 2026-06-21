@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   Image,
   Dimensions,
@@ -13,7 +12,8 @@ import {
   I18nManager,
   Alert,
   Modal,
-  TextInput
+  TextInput,
+  KeyboardAvoidingView
 } from 'react-native';
 import { 
   User, 
@@ -135,7 +135,7 @@ const SettingsScreen = () => {
           </View>
       </View>
 
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
           {/* قسم الملف الشخصي (ملء الفراغ العلوي) */}
@@ -192,7 +192,7 @@ const SettingsScreen = () => {
 
           <Text style={styles.versionText}>Ammarli App v1.0.0</Text>
         </ScrollView>
-      </SafeAreaView>
+      </View>
 
       {/* مودال تأكيد الحذف */}
       <Modal
@@ -201,6 +201,7 @@ const SettingsScreen = () => {
         visible={deleteModalVisible}
         onRequestClose={() => setDeleteModalVisible(false)}
       >
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -236,7 +237,7 @@ const SettingsScreen = () => {
 
             <View style={styles.modalActions}>
               <TouchableOpacity 
-                style={[styles.modalButton, styles.cancelButton]} 
+                style={[styles.modalButton, styles.cancelButton, { paddingTop: insets.top, paddingBottom: insets.bottom }]} 
                 onPress={() => {
                   setDeleteModalVisible(false);
                   setPassword('');
@@ -254,6 +255,7 @@ const SettingsScreen = () => {
             </View>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
 
     </View>
@@ -271,7 +273,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F2F5',
   },
   headerContent: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
@@ -344,17 +346,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Cairo-Bold',
     color: '#8E8E93',
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 20,
   },
   menuItem: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 18,
   },
   menuItemContent: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     flex: 1,
     justifyContent: 'flex-end',
@@ -437,7 +439,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   inputContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     backgroundColor: '#F8F9FA',
     borderWidth: 1.5,
@@ -462,7 +464,7 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   modalActions: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     gap: 15,
   },

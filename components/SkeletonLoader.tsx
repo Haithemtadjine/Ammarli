@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   cardHeaderRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     marginBottom: 18,
   },
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderRadius: 22,
     marginBottom: 16,
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     overflow: 'hidden',
     elevation: 3,
     shadowColor: '#000',
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   notifTopRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   notifBodyRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'flex-start',
   },
   notifTitle: {

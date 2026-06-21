@@ -5,7 +5,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Dimensions,
   Platform,
   StatusBar
@@ -37,7 +36,7 @@ export default function InvoiceScreen() {
 
   const invoiceNumber = `INV-${Math.floor(1000 + Math.random() * 9000)}`;
   const driverName = "خالد";
-  const deliveryFee = activeOrder ? 0 : 150; // Dynamic delivery fee
+  const deliveryFee = 0;
 
   const currentDate = new Date().toLocaleDateString('ar-EG', {
     day: 'numeric',
@@ -59,7 +58,7 @@ export default function InvoiceScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16 }]} showsVerticalScrollIndicator={false}>
         
@@ -76,7 +75,7 @@ export default function InvoiceScreen() {
         <View style={styles.receiptCard}>
           {/* Table Header */}
           <View style={styles.tableHeader}>
-            <Text style={[styles.columnHeader, { flex: 1.2 }]}>المجموع الفرعي</Text>
+            <Text style={[styles.columnHeader, { flex: 1.2 }, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>المجموع الفرعي</Text>
             <Text style={[styles.columnHeader, { flex: 1 }]}>سعر الوحدة</Text>
             <Text style={[styles.columnHeader, { flex: 0.5 }]}>الكمية</Text>
             <Text style={[styles.columnHeader, { flex: 0.7 }]}>الحجم</Text>
@@ -104,10 +103,6 @@ export default function InvoiceScreen() {
                 <Text style={styles.summaryValue}>{subtotal.toLocaleString()} د.ج</Text>
                 <Text style={styles.summaryLabel}>المجموع الفرعي:</Text>
              </View>
-             <View style={styles.summaryRow}>
-                <Text style={styles.summaryValue}>{deliveryFee.toLocaleString()} د.ج</Text>
-                <Text style={styles.summaryLabel}>رسوم التوصيل:</Text>
-             </View>
           </View>
 
           {/* Navy Total Card */}
@@ -126,7 +121,7 @@ export default function InvoiceScreen() {
 
         <Text style={styles.footerBrand}>AMMARLI PREMIUM WATER • توصيل سريع ونقي</Text>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -147,17 +142,17 @@ const styles = StyleSheet.create({
     elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12,
   },
   tableHeader: {
-    flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#F2F2F7', paddingBottom: 12, marginBottom: 10,
+    flexDirection: 'row-reverse', borderBottomWidth: 1, borderBottomColor: '#F2F2F7', paddingBottom: 12, marginBottom: 10,
   },
   columnHeader: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Cairo-Bold', textAlign: 'center' },
   tableRow: {
-    flexDirection: 'row', paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: '#F2F2F7', alignItems: 'center'
+    flexDirection: 'row-reverse', paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: '#F2F2F7', alignItems: 'center'
   },
   rowText: { fontSize: 13, color: '#444', textAlign: 'center', fontFamily: 'Cairo-SemiBold' },
   
   summarySection: { marginTop: 20, paddingHorizontal: 5 },
   summaryRow: { flexDirection: 'row-reverse', justifyContent: 'flex-start', marginBottom: 8 },
-  summaryLabel: { fontSize: 15, color: COLORS.primaryBlue, fontFamily: 'Cairo-SemiBold', width: 120, textAlign: 'right' },
+  summaryLabel: { fontSize: 15, color: COLORS.primaryBlue, fontFamily: 'Cairo-SemiBold', width: 120, textAlign: 'left' },
   summaryValue: { fontSize: 15, color: COLORS.primaryBlue, fontFamily: 'Cairo-Bold', marginRight: 15 },
 
   totalCard: {
@@ -170,7 +165,7 @@ const styles = StyleSheet.create({
 
   ratingButton: {
     backgroundColor: COLORS.accentYellow, width: '100%', height: 60, borderRadius: 30,
-    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 25,
+    flexDirection: 'row-reverse', justifyContent: 'center', alignItems: 'center', marginBottom: 25,
     elevation: 6, shadowColor: COLORS.accentYellow, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12,
   },
   ratingButtonText: { fontSize: 20, fontFamily: 'Cairo-Bold', color: COLORS.primaryBlue, marginLeft: 12 },

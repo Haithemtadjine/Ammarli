@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   TextInput,
   StatusBar,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,7 +29,7 @@ const COLORS = {
 
 const SupportCategory = ({ label }: { label: string }) => (
   <TouchableOpacity style={styles.categoryCard} activeOpacity={0.7}>
-    <Ionicons name="arrow-forward" size={18} color={COLORS.primary} style={styles.arrowIconLeft} />
+    <Ionicons name='chevron-back' size={18} color={COLORS.primary} style={styles.arrowIconLeft} />
     <Text style={styles.categoryLabel}>{label}</Text>
   </TouchableOpacity>
 );
@@ -58,12 +60,13 @@ export default function DriverHelpSupportScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={26} color={COLORS.primary} />
+          <Ionicons name='chevron-forward' size={26} color={COLORS.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>المساعدة والدعم</Text>
         <View style={{ width: 44 }} />
       </View>
 
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
@@ -82,7 +85,7 @@ export default function DriverHelpSupportScreen() {
               onChangeText={setSearchQuery}
               textAlign="right"
             />
-            <Ionicons name="search-outline" size={20} color={COLORS.textSecondary} style={{ marginLeft: 10 }} />
+            <Ionicons name="search-outline" size={20} color={COLORS.textSecondary} style={{ marginRight: 10 }} />
           </View>
         </View>
 
@@ -110,6 +113,7 @@ export default function DriverHelpSupportScreen() {
           <FAQItem title="ما هي نسبة عمولة التطبيق؟"            />
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* الفوتر الثابت */}
       <View style={[styles.footerAction, { paddingBottom: Math.max(insets.bottom, 16) + 5 }]}>
@@ -134,7 +138,7 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 15,
@@ -163,12 +167,12 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 15, fontFamily: 'Cairo-SemiBold', color: COLORS.primary },
 
   // Section titles
-  sectionTitle:    { fontSize: 24, fontFamily: 'Cairo-Black', color: COLORS.primary, textAlign: 'right' },
+  sectionTitle:    { fontSize: 24, fontFamily: 'Cairo-Black', color: COLORS.primary, textAlign: 'left' },
   sectionSubtitle: {
     fontSize: 14,
     fontFamily: 'Cairo-Bold',
     color: COLORS.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 4,
     marginBottom: 15,
   },
@@ -191,7 +195,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 1,
   },
-  categoryLabel: { fontSize: 18, fontFamily: 'Cairo-Bold', color: COLORS.primary, textAlign: 'right' },
+  categoryLabel: { fontSize: 18, fontFamily: 'Cairo-Bold', color: COLORS.primary, textAlign: 'left' },
   arrowIconLeft:  { opacity: 0.8 },
 
   // FAQ
@@ -208,17 +212,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Cairo-Bold',
     color: COLORS.primary,
-    textAlign: 'right',
+    textAlign: 'left',
     flex: 1,
-    marginRight: 12,
+    marginLeft: 12,
   },
 
   // Footer
   footerAction: {
     position: 'absolute',
     bottom: 0,
-    left: 0,
     right: 0,
+    left: 0,
     backgroundColor: COLORS.white,
     paddingHorizontal: 24,
     paddingTop: 12,
@@ -231,7 +235,7 @@ const styles = StyleSheet.create({
     height: 56,
     backgroundColor: COLORS.secondary,
     borderRadius: 16,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,

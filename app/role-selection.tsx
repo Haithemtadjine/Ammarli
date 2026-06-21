@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ΓöÇΓöÇΓöÇ Role Selection Screen ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
  * Premium golden/navy design with:
  *  - LinearGradient cards (gold for customer, navy for driver)
@@ -45,7 +45,7 @@ interface RoleDef {
   id: SelectedRole;
   titleAr: string;
   descAr: string;
-  imageUri: string;
+  imageSource: any;
   gradientColors: readonly [string, string, ...string[]];
   textColor: string;
   descColor: string;
@@ -55,9 +55,9 @@ interface RoleDef {
 const ROLES: RoleDef[] = [
   {
     id: 'CUSTOMER',
-    titleAr: '╪º╪╖┘ä╪¿ ╪º┘ä╪ó┘å',
-    descAr: '┘à┘è╪º┘ç ┘å┘é┘è╪⌐ ╪¬╪╡┘ä┘â ╪¿╪╢╪║╪╖╪⌐ ╪▓╪▒',
-    imageUri: 'https://img.icons8.com/3d-fluency/188/water-bottle.png',
+    titleAr: 'اطلب الآن',
+    descAr: 'مياه نقية تصلك بضغطة زر',
+    imageSource: require('../assets/images/bottled_icon.png'),
     gradientColors: ['#FFD700', '#DAA520'],
     textColor: NAVY,
     descColor: 'rgba(0,33,71,0.7)',
@@ -65,9 +65,9 @@ const ROLES: RoleDef[] = [
   },
   {
     id: 'DRIVER',
-    titleAr: '╪º┘å╪╢┘à ┘â╪┤╪▒┘è┘â',
-    descAr: '┘â┘å ╪¼╪▓╪í╪º┘ï ┘à┘å ┘ü╪▒┘è┘é ╪º┘ä╪¬┘ê╪╡┘è┘ä ╪º┘ä┘à╪¡╪¬╪▒┘ü',
-    imageUri: 'https://img.icons8.com/3d-fluency/188/truck.png',
+    titleAr: 'انضم كشريك',
+    descAr: 'كن جزءاً من فريق التوصيل المحترف',
+    imageSource: { uri: 'https://img.icons8.com/3d-fluency/188/truck.png' },
     gradientColors: ['#002147', '#001530'],
     textColor: WHITE,
     descColor: 'rgba(255,255,255,0.7)',
@@ -91,25 +91,35 @@ export default function RoleSelectionScreen() {
   // One Animated.Value per card for scale feedback
   const scaleAnims = useRef(ROLES.map(() => new Animated.Value(1))).current;
 
-  // ΓöÇΓöÇ Select a role card ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  // ── Select a role card and navigate ──
   const handleSelectRole = (role: SelectedRole, index: number) => {
-    Haptics.selectionAsync();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedRole(role);
 
-    // Pulse: slightly shrink then spring to 1.02
+    // Pulse: slightly shrink then spring
     Animated.sequence([
       Animated.timing(scaleAnims[index], {
-        toValue: 0.97,
-        duration: 80,
+        toValue: 0.95,
+        duration: 100,
         useNativeDriver: true,
       }),
       Animated.spring(scaleAnims[index], {
-        toValue: selectedRole === role ? 1.02 : 1.02,
+        toValue: 1.0,
         friction: 5,
-        tension: 120,
+        tension: 100,
         useNativeDriver: true,
       }),
-    ]).start();
+    ]).start(() => {
+      // Route after animation
+      if (role === 'CUSTOMER') {
+        router.push('/(customer)/login' as any);
+      } else {
+        router.push('/(driver)/login' as any);
+      }
+      
+      // Reset selected state silently
+      setTimeout(() => setSelectedRole(null), 500);
+    });
 
     // Reset the other card to 1
     ROLES.forEach((_, i) => {
@@ -124,24 +134,6 @@ export default function RoleSelectionScreen() {
     });
   };
 
-  // ΓöÇΓöÇ Start button ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-  const handleStart = () => {
-    if (!selectedRole) return;
-
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-    if (selectedRole === 'CUSTOMER') {
-      // Route to auth gate ΓÇö login will redirect to tabs on success
-      router.push('/(customer)/login' as any);
-    } else {
-      // Driver: route to driver login
-      router.push('/(driver)/login' as any);
-    }
-  };
-
-  // ΓöÇΓöÇ Render ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-  const isStartEnabled = !!selectedRole;
-
   return (
     <View
       style={[
@@ -151,15 +143,17 @@ export default function RoleSelectionScreen() {
     >
       <StatusBar barStyle="dark-content" backgroundColor={BG} />
 
-      {/* ΓöÇΓöÇ Logo ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
-      <View style={styles.logoContainer}>
-        <Text style={styles.logoText}>Ammarli</Text>
-      </View>
+      <View style={{ alignItems: 'center', gap: 10 }}>
+        {/* ΓöÇΓöÇ Logo ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        <View style={styles.logoContainer}>
+          <Text style={styles.logoText}>Ammarli</Text>
+        </View>
 
-      {/* ΓöÇΓöÇ Title block ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
-      <View style={styles.textSection}>
-        <Text style={styles.mainTitle}>╪Ñ╪«╪¬╪▒ ╪¬╪¼╪▒╪¿╪¬┘â</Text>
-        <Text style={styles.subTitle}>┘â┘è┘ü ╪¬╪▒┘è╪» ╪º╪│╪¬╪«╪»╪º┘à ╪╣┘à╪º╪▒┘ä┘è ╪º┘ä┘è┘ê┘à╪ƒ</Text>
+        {/* ΓöÇΓöÇ Title block ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        <View style={styles.textSection}>
+          <Text style={styles.mainTitle}>اختر تجربتك</Text>
+          <Text style={styles.subTitle}>كيف تريد استخدام عمارلي اليوم؟</Text>
+        </View>
       </View>
 
       {/* ΓöÇΓöÇ Role cards ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
@@ -185,10 +179,10 @@ export default function RoleSelectionScreen() {
                   end={{ x: 1, y: 1 }}
                   style={styles.roleCard}
                 >
-                  {/* row-reverse: image on the right, text on the left (RTL-friendly) */}
+                  {/* row: text on the left, image on the right */}
                   <View style={styles.cardContentRow}>
 
-                    {/* Text ΓÇö on the left (end in LTR, start in RTL) */}
+                    {/* Text — on the left */}
                     <View style={styles.textContent}>
                       <Text style={[styles.roleTitle, { color: role.textColor }]}>
                         {role.titleAr}
@@ -198,10 +192,10 @@ export default function RoleSelectionScreen() {
                       </Text>
                     </View>
 
-                    {/* Image box ΓÇö on the right (start in LTR, end in RTL) */}
+                    {/* Image box — on the right */}
                     <View style={[styles.imageBox, role.imageBoxStyle]}>
                       <Image
-                        source={{ uri: role.imageUri }}
+                        source={role.imageSource}
                         style={styles.threeDImage}
                         resizeMode="contain"
                       />
@@ -215,27 +209,7 @@ export default function RoleSelectionScreen() {
         })}
       </View>
 
-      {/* ΓöÇΓöÇ Start button ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          disabled={!isStartEnabled}
-          onPress={handleStart}
-          activeOpacity={0.85}
-          style={[
-            styles.startButton,
-            !isStartEnabled && styles.startButtonDisabled,
-          ]}
-        >
-          <Text
-            style={[
-              styles.startButtonText,
-              !isStartEnabled && styles.startButtonTextDisabled,
-            ]}
-          >
-            ╪º╪¿╪»╪ú ╪º┘ä╪▒╪¡┘ä╪⌐
-          </Text>
-        </TouchableOpacity>
-      </View>
+
     </View>
   );
 }
@@ -247,7 +221,8 @@ const styles = StyleSheet.create({
     backgroundColor: BG,
     paddingHorizontal: 24,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    gap: 50,
   },
 
   // Logo
@@ -313,7 +288,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardContentRow: {
-    flexDirection: 'row-reverse',   // image on the right, text on the left (RTL-friendly)
+    flexDirection: 'row-reverse',   // image on the right, text on the left
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: 100,
@@ -322,7 +297,7 @@ const styles = StyleSheet.create({
   // Text block (inside card)
   textContent: {
     flex: 1,
-    marginEnd: 12,
+    marginLeft: 12,
   },
   roleTitle: {
     fontSize: 26,

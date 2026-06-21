@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   Dimensions,
   Platform,
@@ -80,7 +79,7 @@ export default function MyAccountScreen() {
     <View style={styles.container}>
       <StatusBar hidden={false} barStyle="dark-content" />
 
-      <SafeAreaView style={styles.safeArea}>
+      <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 + insets.bottom }]}>
           
           {/* Profile Header */}
@@ -148,7 +147,7 @@ export default function MyAccountScreen() {
           </View>
 
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
@@ -159,7 +158,7 @@ const styles = StyleSheet.create({
   scrollContent: {},
   
   profileHeader: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'flex-end',
     alignItems: 'center',
     paddingHorizontal: 25,
@@ -169,7 +168,7 @@ const styles = StyleSheet.create({
   userInfo: { alignItems: 'flex-end', marginRight: 15 },
   userName: { fontSize: 32, fontFamily: 'Cairo-Bold', color: THEME_NAVY },
   ratingBadge: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: THEME_YELLOW,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -213,8 +212,8 @@ const styles = StyleSheet.create({
   actionText: { marginTop: 10, fontSize: 14, fontFamily: 'Cairo-Bold', color: THEME_NAVY },
   
   menuContainer: { paddingHorizontal: 20 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 18 },
-  menuItemContent: { flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'flex-end' },
+  menuItem: { flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 18 },
+  menuItemContent: { flexDirection: 'row-reverse', alignItems: 'center', flex: 1, justifyContent: 'flex-end' },
   menuItemText: { fontSize: 17, fontFamily: 'Cairo-SemiBold', color: THEME_NAVY, marginRight: 15 },
   menuIconContainer: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   divider: { height: 1, backgroundColor: '#F2F2F7', marginVertical: 10 },

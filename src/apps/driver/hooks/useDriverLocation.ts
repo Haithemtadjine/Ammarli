@@ -11,7 +11,7 @@
 
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
-import { useDriverStore } from '../../store/useDriverStore';
+import { useDriverStore } from '../../../store/useDriverStore';
 
 interface DriverLocationState {
   coords: { latitude: number; longitude: number } | null;

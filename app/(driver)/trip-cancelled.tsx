@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   Dimensions,
   Image
 } from 'react-native';
@@ -97,7 +96,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.dangerLight,
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 10,
@@ -152,7 +151,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   reasonHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
     gap: 8,
@@ -166,7 +165,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Cairo-Bold',
     color: COLORS.primary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   illustrationContainer: {
     flex: 1,
