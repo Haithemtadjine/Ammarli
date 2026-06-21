@@ -203,7 +203,7 @@ export default function OrderDetailsScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: COLORS.background }}
       >
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { paddingBottom: 200 + insets.bottom }]} keyboardShouldPersistTaps="handled">
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { flexGrow: 1, paddingBottom: 200 + insets.bottom }]} keyboardShouldPersistTaps="handled">
           
           {/* Map Preview Section */}
           <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
@@ -227,7 +227,7 @@ export default function OrderDetailsScreen() {
 
           {/* Brand Selection */}
           <Text style={styles.sectionTitle}>اختر العلامة التجارية</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.brandScroll}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.brandScroll, { flexGrow: 1 }]}>
             {BRANDS.map((brand) => (
               <TouchableOpacity 
                 key={brand.id}
@@ -252,7 +252,7 @@ export default function OrderDetailsScreen() {
           {/* Size Selection for selected Brand */}
           <Text style={styles.sectionTitle}>اختر الأحجام لـ <Text style={{ color: COLORS.primaryBlue }}>{getBrandName(selectedBrand)}</Text></Text>
           
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sizesScroll}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.sizesScroll, { flexGrow: 1 }]}>
             <ProductCard 
               size="5L" 
               label="عبوة 5 لتر" 

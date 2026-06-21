@@ -71,7 +71,7 @@ export default function DriverHelpSupportScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: Math.max(insets.bottom, 16) + 90 },
+          { flexGrow: 1, paddingBottom: Math.max(insets.bottom, 16) + 90 },
         ]}
       >
         {/* شريط البحث */}

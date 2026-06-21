@@ -104,7 +104,7 @@ export default function ChangePasswordScreen() {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
           keyboardShouldPersistTaps="handled"
         >
           {/* رسالة النجاح */}

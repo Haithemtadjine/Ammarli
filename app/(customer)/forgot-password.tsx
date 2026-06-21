@@ -89,7 +89,7 @@ export default function ForgotPasswordScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]} keyboardShouldPersistTaps="handled">
           
           <View style={styles.iconBadge}>
             <Ionicons name={step === 1 ? "lock-closed-outline" : "chatbubble-ellipses-outline"} size={36} color={NAVY} />

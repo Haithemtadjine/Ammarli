@@ -79,7 +79,7 @@ export default function SecurityScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={[styles.content, { flexGrow: 1 }]} keyboardShouldPersistTaps="handled">
           <Text style={styles.instructionText}>
             الرجاء إدخال كلمة السر القديمة ثم تعيين كلمة السر الجديدة الخاصة بك لحماية حسابك.
           </Text>

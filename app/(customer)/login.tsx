@@ -134,7 +134,7 @@ export default function CustomerLoginScreen() {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingBottom: insets.bottom + 40 },
+            { flexGrow: 1, paddingBottom: insets.bottom + 40 },
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"

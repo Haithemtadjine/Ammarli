@@ -138,7 +138,7 @@ export default function OrderAcceptanceScreen() {
       <View style={[styles.overlay, { paddingTop: insets.top }]}>
         
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollArea} keyboardShouldPersistTaps="handled">
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollArea, { flexGrow: 1 }]} keyboardShouldPersistTaps="handled">
 
           {/* ── بطاقة العميل ── */}
           <View style={styles.customerCard}>

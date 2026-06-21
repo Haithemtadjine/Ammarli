@@ -136,7 +136,7 @@ const SettingsScreen = () => {
       </View>
 
       <View style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]} showsVerticalScrollIndicator={false}>
           
           {/* قسم الملف الشخصي (ملء الفراغ العلوي) */}
           <View style={styles.profileSection}>

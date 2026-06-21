@@ -147,7 +147,7 @@ export default function TankDeliveryDetailsScreen() {
         style={{ flex: 1, backgroundColor: COLORS.background }}
       >
         <ScrollView 
-          contentContainerStyle={[styles.scrollContent, { paddingBottom: 200 + insets.bottom }]}
+          contentContainerStyle={[styles.scrollContent, { flexGrow: 1, paddingBottom: 200 + insets.bottom }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >

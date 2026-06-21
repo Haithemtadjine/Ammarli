@@ -104,7 +104,7 @@ const HelpSupportScreen = () => {
         </View>
 
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <ScrollView contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {/* قسم الفئات */}
           <Text style={styles.sectionLabel}>الفئات</Text>
           <CategoryCard title="الحساب والدفع" icon={CreditCard} />

@@ -71,7 +71,7 @@ export default function PersonalInfoScreen() {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
           keyboardShouldPersistTaps="handled"
         >
           {/* الصورة الشخصية */}

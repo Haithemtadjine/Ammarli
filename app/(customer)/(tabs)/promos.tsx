@@ -76,7 +76,7 @@ export default function PromotionsScreen() {
           style={{ flex: 1 }}
         >
           <ScrollView 
-            contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 + insets.bottom }]} 
+            contentContainerStyle={[styles.scrollContent, { flexGrow: 1, paddingBottom: 80 + insets.bottom }]} 
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >

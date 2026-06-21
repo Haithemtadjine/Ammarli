@@ -427,7 +427,7 @@ export default function DriverDashboardScreen() {
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}>
         {/* ملخص اليوم (مشترك وموحد) */}
         <View style={styles.statsRow}>
           <View style={[styles.statCard, { backgroundColor: COLORS.primary }]}>

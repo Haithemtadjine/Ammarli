@@ -99,7 +99,7 @@ export default function DriverRatingScreen() {
       
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView 
-          contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 40 }]} 
+          contentContainerStyle={[styles.scrollContent, { flexGrow: 1, paddingTop: insets.top + 20, paddingBottom: insets.bottom + 40 }]} 
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
