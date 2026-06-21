@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -66,7 +67,7 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <ScreenContainer style={[styles.root]}>
       <StatusBar barStyle="light-content" backgroundColor={NAVY_DARK} />
 
       {/* Back button */}
@@ -185,7 +186,7 @@ export default function ForgotPasswordScreen() {
         </View>
       </Modal>
 
-    </View>
+    </ScreenContainer>
   );
 }
 

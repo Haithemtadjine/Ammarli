@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -251,7 +252,7 @@ const DriverRegistrationScreen = () => {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? insets.top : 0 }]}>
+    <ScreenContainer style={[styles.container, { paddingTop: Platform.OS === 'ios' ? insets.top : 0 }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} translucent={false} />
 
       {/* Header */}
@@ -272,7 +273,7 @@ const DriverRegistrationScreen = () => {
           {FormContent}
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </ScreenContainer>
   );
 };
 

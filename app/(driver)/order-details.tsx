@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React, { useState } from 'react';
 import {
   View,
@@ -160,7 +161,7 @@ export default function OrderDetailsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
 
@@ -320,7 +321,7 @@ export default function OrderDetailsScreen() {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 

@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -126,7 +127,7 @@ const ScheduleOrderScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
       
       <View style={styles.safeArea}>
@@ -266,7 +267,7 @@ const ScheduleOrderScreen = () => {
           <Text style={styles.toastText}>تمت عملية الجدولة بنجاح</Text>
         </View>
       )}
-    </View>
+    </ScreenContainer>
   );
 };
 

@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React, { useEffect, useRef } from 'react';
 import {
   StyleSheet,
@@ -78,7 +79,7 @@ export default function SearchingDriverScreen() {
   });
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <StatusBar barStyle="dark-content" hidden={false} />
       
       {/* 1. Background Map */}
@@ -148,7 +149,7 @@ export default function SearchingDriverScreen() {
           <Text style={styles.cancelButtonText}>إلغاء الطلب</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 

@@ -1,3 +1,4 @@
+import ScreenContainer from '../components/ScreenContainer';
 /**
  * ΓöÇΓöÇΓöÇ Role Selection Screen ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
  * Premium golden/navy design with:
@@ -135,7 +136,7 @@ export default function RoleSelectionScreen() {
   };
 
   return (
-    <View
+    <ScreenContainer
       style={[
         styles.container,
         { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 },
@@ -210,7 +211,7 @@ export default function RoleSelectionScreen() {
       </View>
 
 
-    </View>
+    </ScreenContainer>
   );
 }
 

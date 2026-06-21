@@ -1,3 +1,4 @@
+import ScreenContainer from '../../../components/ScreenContainer';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,7 +10,7 @@ export default function DocumentsScreen() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenContainer style={styles.container}>
       <View style={styles.header}>
         <View style={{ width: 44 }} />
         <Text style={styles.headerTitle}>الوثائق والرخص</Text>
@@ -20,7 +21,7 @@ export default function DocumentsScreen() {
       <View style={styles.content}>
         <Text style={styles.placeholder}>هنا يتم عرض الوثائق والرخص الخاصة بك</Text>
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 

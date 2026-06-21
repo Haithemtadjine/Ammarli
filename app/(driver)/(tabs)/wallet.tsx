@@ -1,4 +1,5 @@
 import React from 'react';
+import ScreenContainer from '../../../components/ScreenContainer';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, 
   StatusBar, Dimensions, Platform
@@ -35,7 +36,7 @@ const DriverEarningsScreen = () => {
   ];
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenContainer backgroundColor="#FFF" statusBarStyle="dark-content" statusBarColor="#FFF">
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       
       {/* Header الموحد */}
@@ -117,7 +118,7 @@ const DriverEarningsScreen = () => {
            <TransactionItem name="مريم ل." date="23 أفريل • 16:45" amount="2,100" />
         </View>
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 };
 

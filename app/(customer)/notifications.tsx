@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -89,7 +90,7 @@ export default function NotificationsScreen() {
   ));
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       <View style={[styles.safeArea, { paddingTop: insets.top }, { paddingBottom: insets.bottom }]}>
@@ -155,7 +156,7 @@ export default function NotificationsScreen() {
         />
         )}
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import ScreenContainer from '../../components/ScreenContainer';
 import {
   View,
   Text,
@@ -171,7 +172,7 @@ const DriverLoginScreen = () => {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? insets.top : 0 }]}>
+    <ScreenContainer style={[styles.container, { paddingTop: Platform.OS === 'ios' ? insets.top : 0 }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} translucent={false} />
       
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
@@ -183,7 +184,7 @@ const DriverLoginScreen = () => {
           {FormContent}
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </ScreenContainer>
   );
 };
 

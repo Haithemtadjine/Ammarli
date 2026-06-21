@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 /**
  * ─── Customer Login Screen ───────────────────────────────────────────────────
  * Premium Uber-style design · Deep Navy & Vibrant Yellow
@@ -124,7 +125,7 @@ export default function CustomerLoginScreen() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <View style={styles.safeArea}>
+    <ScreenContainer style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
 
       <KeyboardAvoidingView
@@ -222,7 +223,7 @@ export default function CustomerLoginScreen() {
 
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </ScreenContainer>
   );
 }
 

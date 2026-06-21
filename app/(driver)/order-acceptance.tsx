@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -132,7 +133,7 @@ export default function OrderAcceptanceScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F2F4F7" />
 
       <View style={[styles.overlay, { paddingTop: insets.top }]}>
@@ -324,7 +325,7 @@ export default function OrderAcceptanceScreen() {
         </View>
 
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 

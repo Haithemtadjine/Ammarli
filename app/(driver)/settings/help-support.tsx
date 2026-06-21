@@ -1,3 +1,4 @@
+import ScreenContainer from '../../../components/ScreenContainer';
 import React, { useState } from 'react';
 import {
   View,
@@ -54,7 +55,7 @@ export default function DriverHelpSupportScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenContainer style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
@@ -127,7 +128,7 @@ export default function DriverHelpSupportScreen() {
         </TouchableOpacity>
         <Text style={styles.supportAvailability}>متوفر 24/7 لأعضائنا المميزين</Text>
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 

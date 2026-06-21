@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -64,7 +65,7 @@ const EditProfileAlgerian = () => {
   ];
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       {/* إخفاء شريط الحالة لمظهر نظيف */}
       <StatusBar barStyle="light-content" backgroundColor={THEME_NAVY} />
 
@@ -164,7 +165,7 @@ const EditProfileAlgerian = () => {
         </TouchableOpacity>
       </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </ScreenContainer>
   );
 };
 

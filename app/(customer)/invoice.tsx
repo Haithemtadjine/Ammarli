@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React from 'react';
 import {
   StyleSheet,
@@ -58,7 +59,7 @@ export default function InvoiceScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16 }]} showsVerticalScrollIndicator={false}>
         
@@ -121,7 +122,7 @@ export default function InvoiceScreen() {
 
         <Text style={styles.footerBrand}>AMMARLI PREMIUM WATER • توصيل سريع ونقي</Text>
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 }
 

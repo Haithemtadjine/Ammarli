@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -96,7 +97,7 @@ export default function DriverCancelOrderScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenContainer style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FDFDFD" />
       
       {/* Header Section */}
@@ -152,7 +153,7 @@ export default function DriverCancelOrderScreen() {
           <Text style={styles.returnButtonText}>العودة للطلب</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 

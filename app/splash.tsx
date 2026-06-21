@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import ScreenContainer from '../components/ScreenContainer';
 import { View, StyleSheet } from 'react-native';
 import { useRouter, useRootNavigationState } from 'expo-router';
 import { useAuthStore } from '../src/store/useAuthStore';
@@ -47,7 +48,7 @@ export default function SplashScreen() {
   }, []);
 
   return (
-    <View style={styles.container} />
+    <ScreenContainer style={styles.container} />
   );
 }
 

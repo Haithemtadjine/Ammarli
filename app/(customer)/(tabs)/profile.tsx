@@ -1,3 +1,4 @@
+import ScreenContainer from '../../../components/ScreenContainer';
 import React from 'react';
 import {
   StyleSheet,
@@ -76,7 +77,7 @@ export default function MyAccountScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <StatusBar hidden={false} barStyle="dark-content" />
 
       <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -148,7 +149,7 @@ export default function MyAccountScreen() {
 
         </ScrollView>
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 

@@ -1,3 +1,4 @@
+import ScreenContainer from '../../../components/ScreenContainer';
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -67,7 +68,7 @@ export default function PromotionsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <StatusBar hidden={false} barStyle="dark-content" />
       
       <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -124,7 +125,7 @@ export default function PromotionsScreen() {
         </ScrollView>
         </KeyboardAvoidingView>
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 

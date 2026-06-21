@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React, { useEffect } from 'react';
 import {
   StyleSheet,
@@ -43,7 +44,7 @@ export default function DriverArrivedScreen() {
   const serviceName = activeOrder?.type === 'Bottled' ? 'مياه معبأة' : (activeOrder?.type === 'Well' ? 'مياه الآبار' : 'مياه الشرب');
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
       {/* 1. Background Map */}
@@ -127,7 +128,7 @@ export default function DriverArrivedScreen() {
           <Text style={styles.primaryButtonText}>أنا خارج الآن</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 

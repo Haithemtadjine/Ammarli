@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -120,7 +121,7 @@ const SettingsScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F0F2F5" />
       
       {/* Header */}
@@ -258,7 +259,7 @@ const SettingsScreen = () => {
         </KeyboardAvoidingView>
       </Modal>
 
-    </View>
+    </ScreenContainer>
   );
 };
 

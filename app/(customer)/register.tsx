@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 /**
  * ─── Customer Register Screen ────────────────────────────────────────────────
  * Premium Uber-style design · Deep Navy & Vibrant Yellow
@@ -135,7 +136,7 @@ export default function CustomerRegisterScreen() {
   );
 
   return (
-    <View style={styles.safe}>
+    <ScreenContainer style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={C.white} />
 
       {/* ── Header ────────────────────────────────────────────────────────── */}
@@ -330,7 +331,7 @@ export default function CustomerRegisterScreen() {
         </View>
       </Modal>
 
-    </View>
+    </ScreenContainer>
   );
 }
 

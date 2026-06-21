@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ScreenContainer from '../../../components/ScreenContainer';
 import {
   View,
   Text,
@@ -222,7 +223,7 @@ export default function DriverTripsScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenContainer backgroundColor="#FFF" statusBarStyle="dark-content" statusBarColor="#FFF">
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
@@ -272,7 +273,7 @@ export default function DriverTripsScreen() {
           : finalFiltered.map((order: any) => <OrderCard key={order.id} {...order} />)
         }
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 }
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import ScreenContainer from '../../../components/ScreenContainer';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,7 +42,7 @@ const DriverProfileScreen = () => {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenContainer backgroundColor="#FFF" statusBarStyle="dark-content" statusBarColor="#FFF">
       <StatusBar barStyle="dark-content" />
       
       {/* Header الموحد */}
@@ -109,7 +110,7 @@ const DriverProfileScreen = () => {
           <Text style={styles.logoutText}>تسجيل الخروج</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 };
 

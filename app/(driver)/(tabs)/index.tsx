@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ScreenContainer from '../../../components/ScreenContainer';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, StatusBar, Dimensions, Switch, Modal, Animated, ActivityIndicator, AppState } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import Svg, { Circle } from 'react-native-svg';
@@ -331,7 +332,7 @@ export default function DriverDashboardScreen() {
 
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenContainer backgroundColor="#FFF" statusBarStyle="dark-content" statusBarColor="#FFF">
       <StatusBar barStyle="dark-content" />
 
       {/* ── مودال السماح بالموقع ── */}
@@ -450,7 +451,7 @@ export default function DriverDashboardScreen() {
            <View style={styles.emptyOrder}><Text style={styles.emptyText}>لا توجد طلبات حالياً في منطقتك</Text></View>
         </View>
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 }
 

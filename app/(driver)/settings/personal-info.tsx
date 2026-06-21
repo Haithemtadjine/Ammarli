@@ -1,3 +1,4 @@
+import ScreenContainer from '../../../components/ScreenContainer';
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -53,7 +54,7 @@ export default function PersonalInfoScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenContainer style={styles.container}>
       <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
 
       {/* Header */}
@@ -133,7 +134,7 @@ export default function PersonalInfoScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </ScreenContainer>
   );
 }
 

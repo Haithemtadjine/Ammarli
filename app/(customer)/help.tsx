@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -77,7 +78,7 @@ const HelpSupportScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={THEME_NAVY} />
       
       <View style={[styles.safeArea, { paddingTop: insets.top }, { paddingBottom: insets.bottom }]}>
@@ -140,7 +141,7 @@ const HelpSupportScreen = () => {
         </ScrollView>
         </KeyboardAvoidingView>
       </View>
-    </View>
+    </ScreenContainer>
   );
 };
 

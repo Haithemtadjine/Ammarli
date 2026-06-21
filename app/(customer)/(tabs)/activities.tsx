@@ -231,7 +231,7 @@ export default function MyActivitiesScreen() {
       statusBarStyle="dark-content"
       statusBarColor="#FFF"
     >
-      <View style={styles.container}>
+      <ScreenContainer backgroundColor="#FFF" statusBarStyle="dark-content" statusBarColor="#FFF">
         {/* Header Section */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>الطلبات المجدولة</Text>
@@ -376,7 +376,7 @@ export default function MyActivitiesScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </ScreenContainer>
     </ScreenContainer>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ScreenContainer from '../../components/ScreenContainer';
 import {
   StyleSheet,
   View,
@@ -91,7 +92,7 @@ export default function DriverNotificationsScreen() {
   ));
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       <View style={[styles.safeArea, { paddingTop: insets.top }, { paddingBottom: insets.bottom }]}>
@@ -157,7 +158,7 @@ export default function DriverNotificationsScreen() {
         />
         )}
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 

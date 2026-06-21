@@ -1,3 +1,4 @@
+import ScreenContainer from '../../components/ScreenContainer';
 import React from 'react';
 import {
   StyleSheet,
@@ -45,7 +46,7 @@ const PrivacyPolicyScreen = () => {
   ];
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       {/* إخفاء شريط الحالة العلوي لمظهر نظيف */}
       <StatusBar barStyle="light-content" backgroundColor={THEME_NAVY} />
 
@@ -77,7 +78,7 @@ const PrivacyPolicyScreen = () => {
           <Text style={styles.confirmButtonText}>موافق</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 };
 
