@@ -58,22 +58,16 @@ export async function setupPushNotifications() {
   await Notifications.setNotificationCategoryAsync('ACTIVE_ORDER', []);
 }
 
-// ── Test notification (triggered manually from the dashboard button) ─────────
-export async function triggerTestOrderNotification() {
+// ── 1. Target: Customer (When Driver Arrives) ─────────────────────────────
+export async function triggerDriverArrivedNotification() {
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: '🚨 طلبية جديدة بانتظارك!',
-      body: 'العميل ياسين يطلب 10 شدات (مياه معبأة). اقبل الطلب الآن.',
+      title: 'السائق في الخارج! 📍',
+      body: 'سائقك وصل وينتظرك بالخارج. الرجاء استلام الطلبية.',
       sound: true,
-      categoryIdentifier: 'NEW_ORDER',
+      categoryIdentifier: 'CUSTOMER_ORDER_TRACKING',
       data: {
-        type: 'NEW_ORDER',
-        customerName: 'ياسين',
-        price: '2500',
-        address: 'الجزائر العاصمة',
-        orderType: 'bottles',
-        distance: '2.5 كم',
-        rating: '4.8',
+        type: 'CUSTOMER_ORDER_TRACKING',
       },
       priority: Notifications.AndroidNotificationPriority.MAX,
     },
@@ -81,22 +75,16 @@ export async function triggerTestOrderNotification() {
   });
 }
 
-// ── Incoming order notification when driver is AVAILABLE & app goes background ─
-export async function triggerIncomingOrderBackgroundNotification() {
+// ── 2. Target: Driver (When New Order Arrives) ──────────────────────────────
+export async function triggerNewOrderNotification() {
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: '🚨 طلبية جديدة بانتظارك!',
-      body: 'زبون يطلب مياه في منطقتك. افتح التطبيق لقبول الطلب الآن.',
+      title: 'طلبية مياه جديدة! 💧',
+      body: 'يوجد زبون جديد في منطقتك ينتظر التوصيل.',
       sound: true,
-      categoryIdentifier: 'NEW_ORDER',
+      categoryIdentifier: 'NEW_ORDER', // Shows "قبول" and "رفض" buttons
       data: {
         type: 'NEW_ORDER',
-        customerName: 'زبون جديد',
-        price: '2500',
-        address: 'الجزائر العاصمة',
-        orderType: 'spring_water',
-        distance: '2.5 كم',
-        rating: '4.8',
       },
       priority: Notifications.AndroidNotificationPriority.MAX,
     },
@@ -104,24 +92,16 @@ export async function triggerIncomingOrderBackgroundNotification() {
   });
 }
 
-// ── Ongoing notification when driver has an active order & app goes background ─
-export async function triggerActiveOrderBackgroundNotification(orderData: {
-  customerName: string;
-  price: string;
-  address: string;
-  orderType: string;
-  distance: string;
-  orderNumber?: string;
-}) {
+// ── 3. Target: Driver (When Order is Active/Pending) ───────────────────────
+export async function triggerPendingOrderReminder() {
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: '📦 طلبية قيد التوصيل',
-      body: `جاري توصيل طلبية ${orderData.customerName} — اضغط للعودة إلى تفاصيل الطلب.`,
-      sound: false,
+      title: '⏳ تذكير: طلبية معلقة',
+      body: 'لا تنسَ أن لديك طلبية قيد التوصيل حالياً. اضغط للعودة للتفاصيل.',
+      sound: true,
       categoryIdentifier: 'ACTIVE_ORDER',
       data: {
         type: 'ACTIVE_ORDER',
-        ...orderData,
       },
       priority: Notifications.AndroidNotificationPriority.HIGH,
     },
@@ -129,7 +109,7 @@ export async function triggerActiveOrderBackgroundNotification(orderData: {
   });
 }
 
-// ── Clear notification tray when the driver comes back to the app ─────────────
+// ── Clear notification tray when the user comes back to the app ──────────────
 export async function clearAllLocalNotifications() {
   await Notifications.dismissAllNotificationsAsync();
 }

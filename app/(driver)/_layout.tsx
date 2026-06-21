@@ -4,8 +4,8 @@ import { I18nManager, AppState, AppStateStatus } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { useDriverStore } from '../../src/store/useDriverStore';
 import {
-  triggerIncomingOrderBackgroundNotification,
-  triggerActiveOrderBackgroundNotification,
+  triggerNewOrderNotification,
+  triggerPendingOrderReminder,
   clearAllLocalNotifications,
 } from '../../src/services/notificationService';
 
@@ -29,20 +29,13 @@ export default function DriverLayout() {
 
         if (activeDriverOrder) {
           // Driver has an active accepted order → trigger immediate "active order" notification
-          await triggerActiveOrderBackgroundNotification({
-            customerName: activeDriverOrder.customer.name,
-            price:        String(activeDriverOrder.subtotal),
-            address:      activeDriverOrder.deliveryAddress.label,
-            orderType:    'spring_water',
-            distance:     activeDriverOrder.deliveryAddress.distance,
-            orderNumber:  activeDriverOrder.orderId,
-          });
+          await triggerPendingOrderReminder();
         } else if (driverStatus === 'AVAILABLE' && registeredDriver) {
           // Driver is online and available → schedule a "new order" notification after 5 s
           incomingOrderTimer.current = setTimeout(async () => {
             // Double-check the app is still in background before firing
             if (AppState.currentState === 'background') {
-              await triggerIncomingOrderBackgroundNotification();
+              await triggerNewOrderNotification();
             }
           }, 5000);
         }
