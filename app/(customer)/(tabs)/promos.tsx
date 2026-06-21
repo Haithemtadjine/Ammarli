@@ -73,9 +73,9 @@ export default function PromotionsScreen() {
       
       <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+          behavior="padding" 
           style={{ flex: 1 }}
-        >
+         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : (StatusBar.currentHeight || 24) + 20}>
           <ScrollView 
             contentContainerStyle={[styles.scrollContent, { flexGrow: 1, paddingBottom: 80 + insets.bottom }]} 
             showsVerticalScrollIndicator={false}

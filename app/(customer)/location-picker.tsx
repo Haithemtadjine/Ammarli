@@ -197,7 +197,7 @@ export default function InteractiveLocationPicker() {
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
+    <KeyboardAvoidingView behavior="padding" style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : (StatusBar.currentHeight || 24) + 20}>
       {/* 1. Map Background */}
       {Platform.OS === 'web' ? (
         <Image 

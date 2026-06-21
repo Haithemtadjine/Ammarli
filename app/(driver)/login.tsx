@@ -175,7 +175,7 @@ const DriverLoginScreen = () => {
     <ScreenContainer style={[styles.container, { paddingTop: Platform.OS === 'ios' ? insets.top : 0 }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} translucent={false} />
       
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : (StatusBar.currentHeight || 24) + 20}>
         <ScrollView
           contentContainerStyle={[styles.scrollContent, { flexGrow: 1, paddingBottom: insets.bottom + 20 }]}
           showsVerticalScrollIndicator={false}

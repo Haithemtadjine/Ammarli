@@ -148,7 +148,7 @@ export default function CustomerRegisterScreen() {
         <View style={{ width: 44 }} />
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
+      <KeyboardAvoidingView behavior="padding" style={styles.flex} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : (StatusBar.currentHeight || 24) + 20}>
         <ScrollView
           contentContainerStyle={[styles.scroll, { flexGrow: 1, paddingBottom: insets.bottom + 40 }]}
           showsVerticalScrollIndicator={false}

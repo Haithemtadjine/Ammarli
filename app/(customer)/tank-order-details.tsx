@@ -143,9 +143,9 @@ export default function TankDeliveryDetailsScreen() {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
         style={{ flex: 1, backgroundColor: COLORS.background }}
-      >
+       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : (StatusBar.currentHeight || 24) + 20}>
         <ScrollView 
           contentContainerStyle={[styles.scrollContent, { flexGrow: 1, paddingBottom: 200 + insets.bottom }]}
           showsVerticalScrollIndicator={false}

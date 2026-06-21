@@ -10,7 +10,8 @@ import {
   Dimensions,
   Platform,
   KeyboardAvoidingView,
-  Animated
+  Animated,
+  StatusBar
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -200,9 +201,9 @@ export default function OrderDetailsScreen() {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
         style={{ flex: 1, backgroundColor: COLORS.background }}
-      >
+       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : (StatusBar.currentHeight || 24) + 20}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { flexGrow: 1, paddingBottom: 200 + insets.bottom }]} keyboardShouldPersistTaps="handled">
           
           {/* Map Preview Section */}

@@ -67,7 +67,7 @@ export default function DriverHelpSupportScreen() {
         <View style={{ width: 44 }} />
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : (StatusBar.currentHeight || 24) + 20}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
