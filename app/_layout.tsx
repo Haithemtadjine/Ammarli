@@ -20,8 +20,11 @@ import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { I18nManager, Platform, View } from 'react-native';
+import { I18nManager, Platform, View, LogBox } from 'react-native';
 import NewOrderCard from '../components/NewOrderCard';
+
+// Ignore the Expo Go warning about remote push notifications since we only use local ones in dev
+LogBox.ignoreLogs(['expo-notifications: Android Push notifications']);
 
 // Force RTL globally for the entire app (Mobile)
 I18nManager.allowRTL(true);

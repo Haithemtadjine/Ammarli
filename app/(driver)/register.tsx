@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AmmarliInput from '../../components/AmmarliInput';
 import { useDriverStore } from '../../src/store/useDriverStore';
+import { useAuthStore } from '../../src/store/useAuthStore';
 
 const { width } = Dimensions.get('window');
 
@@ -105,7 +106,7 @@ const DriverRegistrationScreen = () => {
     );
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!fullName.trim() || !phone.trim() || !password.trim() || !confirmPassword.trim() || !license.trim()) {
       Alert.alert('بيانات ناقصة', 'يرجى تعبئة جميع الحقول قبل المتابعة.');
       return;
@@ -119,18 +120,24 @@ const DriverRegistrationScreen = () => {
       return;
     }
 
-    registerDriver({
-      name:       fullName.trim(),
-      phone:      phone.trim(),
-      password:   password,
-      truckPlate: license.trim(),
-      driverType: vehicleType === 'bottled' ? 'Bottled' : 'Tanker',
-      waterType:  vehicleType === 'tanker'  ? waterType  : undefined,
-      brands:     vehicleType === 'bottled' ? selectedBrands : undefined,
-      capacity:   vehicleType === 'tanker'  ? Number(capacity) : undefined,
-    });
+    try {
+      await useAuthStore.getState().register({
+        phone: phone.trim(),
+        firstName: fullName.trim().split(' ')[0],
+        lastName: fullName.trim().split(' ').slice(1).join(' ') || ' ',
+        password: password,
+        role: 'DRIVER',
+        driverType: vehicleType === 'bottled' ? 'BOTTLED' : 'TANKER',
+        truckPlate: license.trim(),
+        waterType: vehicleType === 'tanker' ? waterType : undefined,
+        brands: vehicleType === 'bottled' ? selectedBrands : undefined,
+        capacity: vehicleType === 'tanker' ? Number(capacity) : undefined,
+      });
 
-    router.replace('/(driver)/(tabs)' as any);
+      router.replace('/(driver)/(tabs)' as any);
+    } catch (e: any) {
+      Alert.alert('خطأ', e?.response?.data?.message || 'فشل التسجيل. تأكد من البيانات.');
+    }
   };
 
   // ── محتوى النموذج المشترك ────────────────────────────────────────────────

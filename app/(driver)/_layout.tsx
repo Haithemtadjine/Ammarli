@@ -8,6 +8,8 @@ import {
   triggerPendingOrderReminder,
   clearAllLocalNotifications,
 } from '../../src/services/notificationService';
+import { useAuthStore } from '../../src/store/useAuthStore';
+import { socketService } from '../../src/services/socket';
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -66,12 +68,33 @@ export default function DriverLayout() {
       }
     });
 
+    // ── Connect Socket and Setup Listeners ─────────────────────────────
+    const setupSocket = async () => {
+      const driverId = useAuthStore.getState().userProfile?.id;
+      if (driverId) {
+        await socketService.connectAsDriver(driverId);
+        
+        socketService.on('dispatch_offer', (data) => {
+          console.log('socket event: dispatch_offer', data);
+          useDriverStore.getState().handleSocketDispatch(data);
+        });
+
+        socketService.on('request_cancelled', (data) => {
+          console.log('socket event: request_cancelled', data);
+          useDriverStore.getState().handleSocketCancel();
+        });
+      }
+    };
+
+    setupSocket();
+
     return () => {
       subscription.remove();
       // Cancel on unmount as well
       if (scheduledNotifId.current) {
         Notifications.cancelScheduledNotificationAsync(scheduledNotifId.current);
       }
+      socketService.disconnect();
     };
   }, []);
 

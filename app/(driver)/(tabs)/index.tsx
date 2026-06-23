@@ -208,9 +208,11 @@ export default function DriverDashboardScreen() {
   // قراءة بيانات السائق من Store مباشرة
   const registeredDriver = useDriverStore(s => s.registeredDriver);
   const driverStatus     = useDriverStore(s => s.driverStatus);
+  const activeDriverOrder = useDriverStore(s => s.activeDriverOrder);
   const totalEarnings    = useDriverStore(s => s.totalEarnings);
   const completedTrips   = useDriverStore(s => s.completedTrips);
   const setDriverBusy    = useDriverStore(s => s.setDriverBusy);
+  const refuseDriverOrder = useDriverStore(s => s.refuseDriverOrder);
 
   const driver_name = registeredDriver?.name ?? 'السائق';
   const driver_type = registeredDriver?.driverType === 'Bottled' ? 'bottled' : 'tanker';
@@ -237,39 +239,34 @@ export default function DriverDashboardScreen() {
     })();
   }, []);
 
-  // ── بطاقة الطلب: تظهر فقط عندما يكون السائق "متصلاً" وغير مشغول ────────────
+  // ── بطاقة الطلب: تظهر فقط عندما يكون هناك طلب قيد الانتظار ────────────
   useEffect(() => {
-    // إذا أُغلق الاتصال أو كان مشغولاً برحلة → أخفِ البطاقة فوراً 
-    if (!isOnline || driverStatus === 'BUSY') {
-      popupFired.current = false;
-      dismissOrder();
-      return;
-    }
-    // لا تُعِد الإظهار إذا سبق إطلاقها (مثلاً بعد رجوع من قوقل ماب)
-    if (popupFired.current) return;
-    // السائق متصل والـ flag نظيفة → أظهر البطاقة بعد ثانيتين
-    popupFired.current = true;
-    const appear = setTimeout(() => {
-      if (appState.current !== 'active') return; // لا تُظهر إذا التطبيق في الخلفية
+    if (activeDriverOrder?.status === 'pending' && appState.current === 'active') {
       setShowOrder(true);
       Animated.parallel([
         Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, tension: 55, friction: 11 }),
         Animated.timing(fadeAnim,  { toValue: 1, duration: 280, useNativeDriver: true }),
       ]).start();
-      dismissTimer.current = setTimeout(dismissOrder, 16000);
-    }, 2000);
+      
+      // Auto-dismiss after 16 seconds if no action
+      if (dismissTimer.current) clearTimeout(dismissTimer.current);
+      dismissTimer.current = setTimeout(() => {
+        handleDecline();
+      }, 16000);
+    } else {
+      dismissOrder();
+    }
+
     return () => {
-      clearTimeout(appear);
       if (dismissTimer.current) clearTimeout(dismissTimer.current);
     };
-  }, [isOnline]);
+  }, [activeDriverOrder?.status]);
 
   const dismissOrder = () => {
     Animated.parallel([
       Animated.timing(slideAnim, { toValue: 600, duration: 280, useNativeDriver: true }),
       Animated.timing(fadeAnim,  { toValue: 0,   duration: 280, useNativeDriver: true }),
     ]).start(() => setShowOrder(false));
-    if (dismissTimer.current) clearTimeout(dismissTimer.current);
   };
 
   // ── جلب الموقع وحفظه ────────────────────────────────────────────────
@@ -303,32 +300,43 @@ export default function DriverDashboardScreen() {
 
   // القبول: أغلق البوباب وانتقل لصفحة تفاصيل الطلبية مع تمرير البيانات
   const handleAccept = () => {
+    if (dismissTimer.current) clearTimeout(dismissTimer.current);
     dismissOrder();
-    setDriverBusy(true); // تعيين السائق إلى "مشغول" لمنع استقبال طلبات جديدة
-    const orderType = resolveOrderType();
+    
+    if (activeDriverOrder) {
+      useDriverStore.getState().acceptDriverOrder(activeDriverOrder);
+    }
 
-    // محاكاة تفاصيل الطلبية القادمة من العميل (Backend)
-    // إذا كان الطلب قوارير، نرسل إما تشكيلة فاردو، أو طلبية 5 لترات فقط
-    const is5LitersOrder = Math.random() > 0.5;
-    const orderItems = is5LitersOrder
-      ? [{ id: 3, name: '5 لترات', qty: 20, unit: 'عبوة', price: '4.00', image: 'https://img.icons8.com/3d-fluency/94/plastic-bottle.png' }]
-      : [
-          { id: 1, name: 'فاردو 0.5 لتر', qty: 10, unit: 'شدات', price: '12.50', image: 'https://img.icons8.com/3d-fluency/94/water-bottle.png' },
-          { id: 2, name: 'فاردو 1.5 لتر', qty: 5, unit: 'شدات', price: '15.00', image: 'https://img.icons8.com/3d-fluency/94/water-bottle.png' },
-        ];
+    const orderType = resolveOrderType();
+    const orderItems = activeDriverOrder?.items?.map((item: any, index: number) => ({
+      id: index,
+      name: item.description,
+      qty: item.detail,
+      unit: '',
+      price: item.price,
+      image: item.icon === 'droplet' ? 'https://img.icons8.com/3d-fluency/94/water-bottle.png' : null
+    })) || [];
 
     router.push({
       pathname: '/(driver)/order-acceptance' as any,
       params: {
-        customerName: 'ياسين',
-        price:        '2500',
-        address:      'الجزائر العاصمة',
+        customerName: activeDriverOrder?.customer?.name || 'Customer',
+        price: activeDriverOrder?.total?.toString() || '0',
+        address: activeDriverOrder?.deliveryAddress?.label || 'الجزائر',
         orderType,
-        distance:     '2.5 كم',
-        rating:       '4.8',
-        items:        JSON.stringify(orderItems),
+        distance: activeDriverOrder?.deliveryAddress?.distance || '0 كم',
+        rating: '5.0',
+        items: JSON.stringify(orderItems),
       },
     });
+  };
+
+  const handleDecline = () => {
+    if (dismissTimer.current) clearTimeout(dismissTimer.current);
+    dismissOrder();
+    if (activeDriverOrder?.orderId) {
+      refuseDriverOrder(activeDriverOrder.orderId);
+    }
   };
 
 
@@ -406,7 +414,7 @@ export default function DriverDashboardScreen() {
               rating={4.8}
               totalSeconds={15}
               onAccept={handleAccept}
-              onDecline={dismissOrder}
+              onDecline={handleDecline}
             />
           </Animated.View>
         </Modal>

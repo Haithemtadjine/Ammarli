@@ -3,12 +3,13 @@
 // NO customer data here — use useCustomerStore
 
 import { create } from 'zustand';
+import { api } from '../services/api';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type DriverType = 'Tanker' | 'Bottled';
 export type DriverStatus = 'AVAILABLE' | 'BUSY' | 'OFFLINE';
-export type DriverOrderStatus = 'accepted' | 'driving' | 'arrived' | 'completed';
+export type DriverOrderStatus = 'pending' | 'accepted' | 'driving' | 'arrived' | 'completed';
 
 export interface RegisteredDriver {
   name: string;
@@ -118,6 +119,7 @@ interface DriverState {
   registerDriver: (driver: RegisteredDriver) => void;
   updateDriverProfile: (name: string, phone: string) => void;
   updatePassword: (newPassword: string) => void;
+  fetchDriverProfile: () => Promise<void>;
   updateDriverLocation: (lat: number, lng: number) => void;
 
   markAllNotificationsAsRead: () => void;
@@ -127,6 +129,7 @@ interface DriverState {
   setDriverStatus: (status: DriverStatus) => void;
 
   acceptDriverOrder: (order: ActiveDriverOrder) => void;
+  refuseDriverOrder: (requestId: string) => void;
   updateDriverOrderStatus: (status: DriverOrderStatus) => void;
   completeDriverOrder: () => void;
   cancelDriverOrder: (reason: string) => void;
@@ -134,7 +137,9 @@ interface DriverState {
 
   refillStock: (type: 'tanker' | 'bottled', amount?: any) => void;
   setDriverBusy: (isBusy: boolean) => void;
-  completeDelivery: (earnings: number, quantityLiters: number) => void;
+  
+  handleSocketDispatch: (payload: any) => void;
+  handleSocketCancel: () => void;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -254,53 +259,144 @@ export const useDriverStore = create<DriverState>((set, get) => ({
         : null,
     })),
 
-  updateDriverLocation: (lat, lng) =>
+  fetchDriverProfile: async () => {
+    try {
+      const res = await api.get('/drivers/me');
+      if (res.data) {
+        set({
+          registeredDriver: {
+            name: `${res.data.user?.firstName || ''} ${res.data.user?.lastName || ''}`.trim() || 'السائق',
+            phone: res.data.user?.phone || '',
+            truckPlate: res.data.truckPlate || '12345-112-16',
+            capacity: res.data.capacity || 5000,
+            waterType: res.data.waterType || 'spring',
+            driverType: res.data.type === 'TANKER' ? 'Tanker' : 'Bottled',
+            brands: res.data.inventory ? Object.keys(res.data.inventory) : ['Ifri', 'Guedila'],
+            location: { lat: 36.752887, lng: 3.042048 },
+          },
+        });
+      }
+    } catch (e) {
+      console.error('Failed to fetch driver profile:', e);
+    }
+  },
+
+  updateDriverLocation: async (lat, lng) => {
+    // We emit the location over WebSockets instead of an HTTP PATCH
+    const { socketService } = await import('../services/socket');
+    socketService.emitLocationUpdate(lat, lng);
+
     set((s) => ({
       registeredDriver: s.registeredDriver
         ? { ...s.registeredDriver, location: { lat, lng } }
         : null,
-    })),
+    }));
+  },
 
   // ── Status ─────────────────────────────────────────────────────────────────
   setDriverStatus: (status) => set({ driverStatus: status }),
 
   // ── Active Order ──────────────────────────────────────────────────────────
-  acceptDriverOrder: (order) =>
+  handleSocketDispatch: (payload: any) => {
+    const mappedOrder: ActiveDriverOrder = {
+      orderId: payload.id,
+      customer: { 
+        name: payload.user?.firstName ? `${payload.user.firstName} ${payload.user.lastName}`.trim() : 'Customer',
+        phone: payload.user?.phone || ''
+      },
+      deliveryAddress: { 
+        label: payload.deliveryAddress || 'موقع العميل', 
+        distance: '---', // Could calculate from location 
+        lat: payload.pickupLat, 
+        lng: payload.pickupLng 
+      },
+      driverLat: get().registeredDriver?.location?.lat || 0,
+      driverLng: get().registeredDriver?.location?.lng || 0,
+      items: payload.bottledItems ? Object.values(payload.bottledItems).map((i: any) => ({
+        icon: 'droplet',
+        description: i.brand,
+        detail: i.size,
+        price: i.unitPrice * i.qty
+      })) : [{ icon: 'droplet', description: 'صهريج مياه', detail: `${payload.quantity} لتر`, price: payload.totalPrice }],
+      subtotal: payload.subtotal || payload.totalPrice,
+      deliveryFee: 0,
+      total: payload.totalPrice,
+      status: 'pending', // Waiting for driver to accept
+      createdAt: new Date().toISOString(),
+    };
+    
     set({
-      activeDriverOrder: { ...order, status: 'accepted' },
-      driverStatus: 'BUSY',
-    }),
+      activeDriverOrder: mappedOrder,
+    });
+  },
 
-  updateDriverOrderStatus: (status) =>
+  handleSocketCancel: () => {
+    set({
+      activeDriverOrder: null,
+      driverStatus: 'AVAILABLE'
+    });
+  },
+
+  acceptDriverOrder: async (order) => {
+    try {
+      await api.post(`/dispatch/accept`, { requestId: order.orderId });
+      set({
+        activeDriverOrder: { ...order, status: 'accepted' },
+        driverStatus: 'BUSY',
+      });
+    } catch (e) { 
+      console.error('Failed to accept order:', e); 
+      set({ activeDriverOrder: null });
+      throw e;
+    }
+  },
+
+  refuseDriverOrder: async (requestId) => {
+    try {
+      await api.post(`/dispatch/refuse`, { requestId });
+    } catch (e) { console.error('Failed to refuse order:', e); }
+    set({ activeDriverOrder: null, driverStatus: 'AVAILABLE' });
+  },
+
+  updateDriverOrderStatus: async (status) => {
+    const activeId = get().activeDriverOrder?.orderId;
+    if (activeId) {
+      try {
+        if (status === 'arrived') await api.post(`/requests/${activeId}/arrived`);
+        if (status === 'driving') await api.post(`/requests/${activeId}/start`);
+      } catch (e) { console.error('Failed to update status:', e); }
+    }
     set((s) => ({
       activeDriverOrder: s.activeDriverOrder
         ? { ...s.activeDriverOrder, status }
         : null,
-    })),
+    }));
+  },
 
-  completeDriverOrder: () =>
+  completeDriverOrder: async (quantityLiters: number = 0) => {
+    const activeId = get().activeDriverOrder?.orderId;
+    if (activeId) {
+      try {
+        await api.post(`/requests/${activeId}/complete`);
+      } catch (e) { console.error('Failed to complete order:', e); }
+    }
     set((s) => {
       if (!s.activeDriverOrder) return { activeDriverOrder: null };
 
-      const earned = s.activeDriverOrder.subtotal;
+      const earned = s.activeDriverOrder.total;
       const commission = Math.round(earned * 0.1);
       const now = new Date();
 
-      const dateLabel = now
-        .toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
-        .toUpperCase();
-      const timeLabel = now.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      const dateLabel = now.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase();
+      const timeLabel = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
       const newTrip: PastTrip = {
         id: s.activeDriverOrder.orderId,
         date: dateLabel,
         time: timeLabel,
-        orderSummary: s.activeDriverOrder.items[0]?.description ?? 'Delivery',
+        orderSummary: s.activeDriverOrder.items.map((i) => i.description).join(', ') || 'Delivery',
         customerName: s.activeDriverOrder.customer.name,
-        deliveryType: 'Standard Delivery',
+        deliveryType: 'Delivery',
         amount: earned,
         status: 'Completed',
       };
@@ -317,6 +413,9 @@ export const useDriverStore = create<DriverState>((set, get) => ({
         idx === todayIdx ? { ...stat, amount: stat.amount + earned } : stat,
       );
 
+      const currentRemaining = s.inventory.tanker.remaining;
+      const newRemaining = Math.max(0, currentRemaining - quantityLiters);
+
       return {
         activeDriverOrder: null,
         driverStatus: 'AVAILABLE',
@@ -327,27 +426,36 @@ export const useDriverStore = create<DriverState>((set, get) => ({
         weeklyStats: updatedWeekly,
         pastTrips: [newTrip, ...s.pastTrips],
         transactions: [newTransaction, ...s.transactions],
+        inventory: {
+          ...s.inventory,
+          tanker: {
+            ...s.inventory.tanker,
+            remaining: newRemaining
+          }
+        }
       };
-    }),
+    });
+  },
 
-  cancelDriverOrder: (reason) =>
+  cancelDriverOrder: async (reason) => {
+    const activeId = get().activeDriverOrder?.orderId;
+    if (activeId) {
+      try {
+        await api.post(`/requests/${activeId}/cancel`);
+      } catch (e) { console.error('Failed to cancel order:', e); }
+    }
     set((s) => {
       if (!s.activeDriverOrder) return { activeDriverOrder: null };
 
       const now = new Date();
-      const dateLabel = now
-        .toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
-        .toUpperCase();
-      const timeLabel = now.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      const dateLabel = now.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase();
+      const timeLabel = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
       const cancelledTrip: PastTrip = {
         id: s.activeDriverOrder.orderId,
         date: dateLabel,
         time: timeLabel,
-        orderSummary: s.activeDriverOrder.items[0]?.description ?? 'Delivery',
+        orderSummary: s.activeDriverOrder.items.map((i) => i.description).join(', ') || 'Delivery',
         customerName: s.activeDriverOrder.customer.name,
         deliveryType: 'Cancelled Delivery',
         amount: 0,
@@ -360,12 +468,16 @@ export const useDriverStore = create<DriverState>((set, get) => ({
         driverStatus: 'AVAILABLE',
         pastTrips: [cancelledTrip, ...s.pastTrips],
       };
-    }),
+    });
+  },
 
   addPastTrip: (trip) => set((s) => ({ pastTrips: [trip, ...s.pastTrips] })),
 
   // ── Inventory ─────────────────────────────────────────────────────────────
-  refillStock: (type, amount) =>
+  refillStock: async (type, amount) => {
+    try {
+      await api.post('/drivers/me/inventory/refill', { type, amount });
+    } catch (e) { console.error('Failed to refill inventory:', e); }
     set((s) => {
       const inv = s.inventory;
       if (type === 'tanker') {
@@ -396,31 +508,9 @@ export const useDriverStore = create<DriverState>((set, get) => ({
           },
         },
       };
-    }),
+    });
+  },
 
   // ── Trip Flow Management ────────────────────────────────────────────────
   setDriverBusy: (isBusy) => set({ driverStatus: isBusy ? 'BUSY' : 'AVAILABLE' }),
-
-  completeDelivery: (earnings, quantityLiters) =>
-    set((s) => {
-      const newEarnings = s.totalEarnings + earnings;
-      const newTrips = s.completedTrips + 1;
-      
-      // Update inventory (deduct liters)
-      const currentRemaining = s.inventory.tanker.remaining;
-      const newRemaining = Math.max(0, currentRemaining - quantityLiters);
-      
-      return {
-        totalEarnings: newEarnings,
-        completedTrips: newTrips,
-        driverStatus: 'AVAILABLE', // Order is done, available again
-        inventory: {
-          ...s.inventory,
-          tanker: {
-            ...s.inventory.tanker,
-            remaining: newRemaining
-          }
-        }
-      };
-    }),
 }));

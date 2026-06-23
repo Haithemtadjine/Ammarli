@@ -3,6 +3,7 @@
 // NO driver data here — use useDriverStore
 
 import { create } from 'zustand';
+import { api } from '../services/api';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -10,13 +11,14 @@ export type OrderStatus =
   | 'pending'
   | 'searching'
   | 'accepted'
+  | 'arrived'
   | 'delivering'
   | 'delivered'
   | 'cancelled'
   | 'scheduled';
 
 export interface Order {
-  id: number;
+  id: string | number;
   type: string;
   status: OrderStatus;
   quantity?: string;
@@ -77,9 +79,11 @@ interface CustomerState {
   favorites: Order[];
   notifications: Notification[];
   userLocation: { latitude: number; longitude: number; address?: string } | null;
+  driverLocation: { latitude: number; longitude: number } | null;
 
   // ── Order actions ───────────────────────────────────────────────────────────
   setUserLocation: (location: { latitude: number; longitude: number; address?: string } | null) => void;
+  setDriverLocation: (location: { latitude: number; longitude: number } | null) => void;
   createOrder: (order: Order) => void;
   updateOrder: (update: Partial<Order>) => void;
   cancelOrder: (reason?: string) => void;
@@ -100,6 +104,11 @@ interface CustomerState {
   markAllNotificationsAsRead: () => void;
   markNotificationRead: (id: string) => void;
   clearNotifications: () => void;
+
+  // ── Network actions ─────────────────────────────────────────────────────────
+  fetchActiveOrder: () => Promise<void>;
+  fetchPastOrders: () => Promise<void>;
+  handleSocketOrderUpdate: (payload: any) => void;
 }
 
 const INITIAL_DRAFT: DraftOrder = {
@@ -112,13 +121,14 @@ const INITIAL_DRAFT: DraftOrder = {
   },
 };
 
-export const useCustomerStore = create<CustomerState>((set) => ({
+export const useCustomerStore = create<CustomerState>((set, get) => ({
   activeOrder: null,
   pastOrders: [],
   scheduledOrders: [],
   draftOrder: INITIAL_DRAFT,
   favorites: [],
   userLocation: null,
+  driverLocation: null,
   notifications: [
     {
       id: 'schedule-acc-1',
@@ -140,45 +150,170 @@ export const useCustomerStore = create<CustomerState>((set) => ({
 
   // ── Order actions ───────────────────────────────────────────────────────────
   setUserLocation: (location) => set({ userLocation: location }),
-  createOrder: (order) => set({ activeOrder: order }),
+  setDriverLocation: (location) => set({ driverLocation: location }),
+  
+  fetchActiveOrder: async () => {
+    try {
+      const { data } = await api.get('/requests/active');
+      if (data) {
+        const mappedOrder: Order = {
+          id: data.id,
+          type: data.type === 'TANKER' ? 'Tanker' : 'Bottled',
+          status: data.status.toLowerCase() as OrderStatus,
+          quantity: data.quantity?.toString(),
+          price: data.totalPrice || data.subtotal,
+          locationName: data.deliveryAddress,
+          location: { latitude: data.pickupLat, longitude: data.pickupLng },
+          waterType: data.tankerDetails?.waterType,
+          items: data.bottledItems,
+        };
+        set({ activeOrder: mappedOrder });
+      } else {
+        set({ activeOrder: null });
+      }
+    } catch (e) {
+      console.log('No active order found or error:', e);
+    }
+  },
+
+  handleSocketOrderUpdate: (payload: any) => {
+    if (!payload) return;
+    const mappedOrder: Order = {
+      id: payload.id,
+      type: payload.type === 'TANKER' ? 'Tanker' : 'Bottled',
+      status: payload.status.toLowerCase() as OrderStatus,
+      quantity: payload.quantity?.toString(),
+      price: payload.totalPrice || payload.subtotal,
+      locationName: payload.deliveryAddress,
+      location: { latitude: payload.pickupLat, longitude: payload.pickupLng },
+      waterType: payload.tankerDetails?.waterType,
+      items: payload.bottledItems,
+    };
+    
+    set({ activeOrder: mappedOrder });
+  },
+
+  fetchPastOrders: async () => {
+    try {
+      const { data } = await api.get('/requests?limit=50');
+      if (data && data.data) {
+        const past = data.data.map((r: any): Order => ({
+          id: r.id,
+          type: r.type === 'TANKER' ? 'Tanker' : 'Bottled',
+          status: r.status.toLowerCase() as OrderStatus,
+          quantity: r.quantity?.toString(),
+          price: r.totalPrice || r.subtotal,
+          locationName: r.deliveryAddress,
+          location: { latitude: r.pickupLat, longitude: r.pickupLng },
+          waterType: r.tankerDetails?.waterType,
+          items: r.bottledItems,
+          cancelReason: r.cancelReason,
+          orderTime: r.createdAt ? new Date(r.createdAt).toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', month: 'short', day: '2-digit' }) : undefined,
+          schedulingInfo: r.isScheduled ? { date: r.scheduledDate, time: r.scheduledTime } : undefined,
+        }));
+        set({ pastOrders: past });
+      }
+    } catch (e) {
+      console.log('Failed to fetch past orders:', e);
+    }
+  },
+  
+  createOrder: async (order) => {
+    try {
+      const isTanker = order.type === 'Tanker' || order.type === 'Well' || order.type === 'Spring' || order.type === 'Ashghal';
+      const payload = {
+        pickupLat: order.location?.latitude || 0,
+        pickupLng: order.location?.longitude || 0,
+        deliveryAddress: order.locationName,
+        quantity: isTanker ? 1 : parseInt(order.quantity || '1', 10),
+        type: isTanker ? 'TANKER' : 'BOTTLED',
+        tankerDetails: isTanker ? { waterType: order.waterType || order.type, volume: parseInt(order.quantity || '3000', 10) } : undefined,
+        bottledItems: !isTanker ? order.items : undefined,
+        subtotal: order.price,
+        totalPrice: order.price,
+        isScheduled: false,
+      };
+      const res = await api.post('/requests', payload);
+      // Update with real ID from backend
+      set({ activeOrder: { ...order, id: res.data.id } });
+    } catch (error: any) {
+      console.error('Failed to create order on backend:', error?.response?.data || error);
+      throw error;
+    }
+  },
 
   updateOrder: (update) =>
     set((s) => ({
       activeOrder: s.activeOrder ? { ...s.activeOrder, ...update } : null,
     })),
 
-  cancelOrder: (reason) => set((s) => ({
-    pastOrders: s.activeOrder
-      ? [{ ...s.activeOrder, status: 'cancelled', cancelReason: reason }, ...s.pastOrders]
-      : s.pastOrders,
-    activeOrder: null,
-  })),
+  cancelOrder: async (reason) => {
+    const activeId = get().activeOrder?.id;
+    if (activeId && typeof activeId === 'string') {
+      try {
+        await api.post(`/requests/${activeId}/cancel`);
+      } catch (e) {
+        console.error('Failed to cancel on backend:', e);
+      }
+    }
+    set((s) => ({
+      pastOrders: s.activeOrder
+        ? [{ ...s.activeOrder, status: 'cancelled', cancelReason: reason }, ...s.pastOrders]
+        : s.pastOrders,
+      activeOrder: null,
+    }));
+  },
 
-  completeOrder: () =>
+  completeOrder: async () => {
+    const activeId = get().activeOrder?.id;
+    if (activeId && typeof activeId === 'string') {
+      try {
+        await api.post(`/requests/${activeId}/complete`);
+      } catch (e) {
+        console.error('Failed to complete on backend:', e);
+      }
+    }
     set((s) => ({
       pastOrders: s.activeOrder
         ? [{ ...s.activeOrder, status: 'delivered' }, ...s.pastOrders]
         : s.pastOrders,
       activeOrder: null,
-    })),
+    }));
+  },
 
-  scheduleOrder: (order, date, time) =>
-    set((s) => ({
-      pastOrders: [
-        { ...order, status: 'scheduled', schedulingInfo: { date, time } },
-        ...s.pastOrders,
-      ],
-    })),
+  scheduleOrder: async (order, date, time) => {
+    try {
+      await api.post('/requests', {
+        pickupLat: order.location?.latitude || 0,
+        pickupLng: order.location?.longitude || 0,
+        type: order.type === 'Tanker' ? 'TANKER' : 'BOTTLED',
+        isScheduled: true,
+        scheduledDate: date,
+        scheduledTime: time,
+      });
+      set((s) => ({
+        pastOrders: [
+          { ...order, status: 'scheduled', schedulingInfo: { date, time } },
+          ...s.pastOrders,
+        ],
+      }));
+    } catch (e) {
+      console.error('Failed to schedule order:', e);
+      throw e;
+    }
+  },
 
   addScheduledOrder: (order) =>
     set((s) => ({ scheduledOrders: [order, ...s.scheduledOrders] })),
 
-  acceptScheduledOrder: (id, driver) =>
+  acceptScheduledOrder: async (id, driver) => {
+    // Real implementation would notify backend driver acceptance
     set((s) => ({
       scheduledOrders: s.scheduledOrders.map((o) =>
         o.id === id ? { ...o, status: 'accepted', driver } : o
       ),
-    })),
+    }));
+  },
 
   // ── Draft order actions ─────────────────────────────────────────────────────
   updateDraftOrder: (draft) =>

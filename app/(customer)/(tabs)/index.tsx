@@ -35,7 +35,7 @@ const AmmerliHomeScreen = () => {
   // عدد الإشعارات غير المقروءة لإظهار النقطة الذهبية ديناميكياً
   const unreadCount = useCustomerStore((s) => s.notifications.filter((n) => !n.isRead).length);
 
-  const { userLocation, setUserLocation } = useCustomerStore();
+  const { userLocation, setUserLocation, activeOrder } = useCustomerStore();
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [isFetchingLocation, setIsFetchingLocation] = useState(false);
 
@@ -88,6 +88,16 @@ const AmmerliHomeScreen = () => {
       router.push({ pathname: '/(customer)/order-details', params: { type: serviceType } } as any);
     } else {
       router.push({ pathname: '/(customer)/tank-order-details', params: { type: serviceType } } as any);
+    }
+  };
+
+  const handleActiveOrderPress = () => {
+    if (activeOrder?.status === 'arrived') {
+      router.push('/(customer)/driver-arrived');
+    } else if (activeOrder?.status === 'completed' || activeOrder?.status === 'delivered') {
+      router.push('/(customer)/invoice');
+    } else {
+      router.push('/(customer)/order-tracking');
     }
   };
 
@@ -147,20 +157,38 @@ const AmmerliHomeScreen = () => {
             </View>
           </View>
 
-          {/* 2. Banner (Decorative 'Order Now' button) */}
-          <View style={styles.bannerContainer}>
-            <View style={styles.bannerBackground}>
-              <View style={styles.bannerTextContent}>
-                <Text style={styles.bannerTitle}>مياه نقية،</Text>
-                <Text style={styles.bannerTitle}>توصيل سريع</Text>
-                <View style={styles.bannerButtonDecoration}>
-                  <Text style={styles.bannerButtonText}>اطلب الآن</Text>
+          {/* 2. Banner (Active Order or Promotional) */}
+          {activeOrder ? (
+            <TouchableOpacity style={styles.bannerContainer} onPress={handleActiveOrderPress} activeOpacity={0.9}>
+              <View style={[styles.bannerBackground, { backgroundColor: '#FFCC00' }]}>
+                <View style={[styles.bannerTextContent, { alignItems: 'flex-start' }]}>
+                  <Text style={[styles.bannerTitle, { color: '#002147' }]}>لديك طلب نشط</Text>
+                  <Text style={[styles.bannerTitle, { color: '#002147', fontSize: 16, marginTop: 4 }]}>
+                    {activeOrder.status === 'searching' ? 'جاري البحث عن سائق...' : 'تتبع طلبيتك الآن'}
+                  </Text>
+                  <View style={[styles.bannerButtonDecoration, { backgroundColor: '#002147' }]}>
+                    <Text style={[styles.bannerButtonText, { color: '#FFF' }]}>عرض التفاصيل</Text>
+                  </View>
+                </View>
+                <View style={styles.bannerImagePlaceholder}>
+                  <Ionicons name="car" size={60} color="#002147" style={{ opacity: 0.8 }} />
                 </View>
               </View>
-              {/* Illustration Placeholder */}
-              <View style={styles.bannerImagePlaceholder} />
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.bannerContainer}>
+              <View style={styles.bannerBackground}>
+                <View style={styles.bannerTextContent}>
+                  <Text style={styles.bannerTitle}>مياه نقية،</Text>
+                  <Text style={styles.bannerTitle}>توصيل سريع</Text>
+                  <View style={styles.bannerButtonDecoration}>
+                    <Text style={styles.bannerButtonText}>اطلب الآن</Text>
+                  </View>
+                </View>
+                <View style={styles.bannerImagePlaceholder} />
+              </View>
             </View>
-          </View>
+          )}
 
           {/* 3. Functional Water Selection Grid */}
           <View style={styles.sectionHeader}>

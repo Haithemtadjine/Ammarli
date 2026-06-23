@@ -144,6 +144,7 @@ export default function OrderDetailsScreen() {
   const handleComplete = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setCompleting(true);
+    useDriverStore.getState().updateDriverOrderStatus('arrived');
     setTimeout(() => {
       router.replace({
         pathname: '/(driver)/customer-rating' as any,

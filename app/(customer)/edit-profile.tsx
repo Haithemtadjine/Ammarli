@@ -33,13 +33,15 @@ const EditProfileAlgerian = () => {
   const insets = useSafeAreaInsets();
   const { userProfile, updateUserProfile } = useAuthStore();
   
-  const [fullName, setFullName] = useState(userProfile?.name || '');
+  const [firstName, setFirstName] = useState(userProfile?.firstName || '');
+  const [lastName, setLastName] = useState(userProfile?.lastName || '');
   const [phone, setPhone] = useState(userProfile?.phone || '');
   const [selectedProvince, setSelectedProvince] = useState(userProfile?.wilaya || 'الجزائر العاصمة');
 
   useEffect(() => {
     if (userProfile) {
-      setFullName(userProfile.name);
+      setFirstName(userProfile.firstName || '');
+      setLastName(userProfile.lastName || '');
       setPhone(userProfile.phone);
       if (userProfile.wilaya) {
         setSelectedProvince(userProfile.wilaya);
@@ -49,8 +51,9 @@ const EditProfileAlgerian = () => {
 
   const handleSave = async () => {
     await updateUserProfile({
-      name: fullName,
-      phone: phone,
+      firstName,
+      lastName,
+      phone,
       wilaya: selectedProvince
     });
     router.back();
@@ -103,16 +106,31 @@ const EditProfileAlgerian = () => {
         {/* الحقول (Form) */}
         <View style={styles.form}>
           
-          {/* الخانة الأولى: الاسم (نصوص) */}
+          {/* الخانة الأولى والثانية: الاسم واللقب */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>الاسم الكامل</Text>
+            <Text style={styles.label}>الاسم</Text>
             <View style={styles.inputWrapper}>
               <TextInput
                 style={styles.input}
-                placeholder="أدخل اسمك هنا"
+                placeholder="الاسم"
                 placeholderTextColor="#ADB5BD"
-                value={fullName}
-                onChangeText={setFullName}
+                value={firstName}
+                onChangeText={setFirstName}
+                textAlign="right"
+              />
+              <User color={THEME_NAVY} size={20} style={styles.fieldIcon} />
+            </View>
+          </View>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>اللقب</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                placeholder="اللقب"
+                placeholderTextColor="#ADB5BD"
+                value={lastName}
+                onChangeText={setLastName}
                 textAlign="right"
               />
               <User color={THEME_NAVY} size={20} style={styles.fieldIcon} />

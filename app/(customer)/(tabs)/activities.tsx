@@ -20,7 +20,7 @@ import { Calendar, Phone, Star, Truck, X } from 'lucide-react-native';
 import { useCustomerStore, ScheduledOrder, DriverInfo } from '../../../src/store/useCustomerStore';
 import { SkeletonList } from '../../../components/SkeletonLoader';
 import Svg, { Circle, Path, Line, Rect } from 'react-native-svg';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import ScreenContainer, { TAB_BAR_HEIGHT, MIN_BOTTOM_INSET } from '../../../components/ScreenContainer';
 
@@ -202,6 +202,14 @@ export default function MyActivitiesScreen() {
     const timer = setTimeout(() => setIsLoading(false), 600);
     return () => clearTimeout(timer);
   }, []);
+
+  const fetchPastOrders = useCustomerStore((s) => s.fetchPastOrders);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPastOrders();
+    }, [fetchPastOrders])
+  );
 
   // جلب الطلبات من الحالة العامة للطلبات المجدولة والسابقة
   const scheduledOrders = useCustomerStore((s) => s.scheduledOrders);

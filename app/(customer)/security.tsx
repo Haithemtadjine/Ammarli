@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { api } from '../../src/services/api';
 
 export default function SecurityScreen() {
   const insets = useSafeAreaInsets();
@@ -36,7 +37,7 @@ export default function SecurityScreen() {
 
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     let hasError = false;
     let newErrors = { old: false, new: false, confirm: false };
 
@@ -56,12 +57,21 @@ export default function SecurityScreen() {
     setErrors(newErrors);
 
     if (!hasError) {
-      // Show success modal
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        router.back();
-      }, 2500);
+      try {
+        await api.post('/users/me/change-password', {
+          oldPassword,
+          newPassword
+        });
+        // Show success modal
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          router.back();
+        }, 2500);
+      } catch (e) {
+        // Here you might handle a 400 if the old password was wrong
+        alert('حدث خطأ أثناء تغيير كلمة المرور');
+      }
     }
   };
 

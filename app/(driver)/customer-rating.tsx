@@ -45,8 +45,7 @@ const RATING_LABELS: Record<number, string> = {
 export default function CustomerRatingScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  
-  const completeDelivery = useDriverStore(s => s.completeDelivery);
+  const completeDriverOrder = useDriverStore(s => s.completeDriverOrder);
 
   const params = useLocalSearchParams<{ customerName: string; price: string }>();
   const customerName = params.customerName ?? 'الزبون';
@@ -72,14 +71,28 @@ export default function CustomerRatingScreen() {
 
   const finishProcess = () => {
     // إنهاء الرحلة وتسجيل الأرباح (خصم 1000 لتر كمثال ثابت للطلبية حالياً)
-    completeDelivery(priceValue, 1000);
+    completeDriverOrder(1000);
     router.replace('/(driver)/(tabs)' as any);
   };
 
-  const handleSubmit = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setSubmitted(true);
-    setTimeout(finishProcess, 1500);
+  const handleSubmit = async () => {
+    try {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setSubmitted(true);
+      
+      const customerId = 1; // Assuming customerId 1
+      await import('../../src/services/api').then(({ api }) => {
+        return api.post('/rating', {
+          targetId: customerId,
+          rating,
+          comment: `${selectedChips.join(', ')} - ${comment}`,
+        });
+      });
+    } catch (e) {
+      console.warn('Failed to submit rating', e);
+    } finally {
+      setTimeout(finishProcess, 1500);
+    }
   };
 
   const handleSkip = () => {

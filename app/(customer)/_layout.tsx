@@ -8,6 +8,8 @@ import {
   triggerDriverFoundNotification,
   clearAllLocalNotifications,
 } from '../../src/services/notificationService';
+import * as Notifications from 'expo-notifications';
+import { socketService } from '../../src/services/socket';
 
 export default function CustomerLayout() {
   const appState = useRef<AppStateStatus>(AppState.currentState);
@@ -35,7 +37,38 @@ export default function CustomerLayout() {
       }
     });
 
-    return () => subscription.remove();
+    // ── Connect Socket and Setup Listeners ─────────────────────────────
+    socketService.connectAsUser();
+
+    socketService.on('request_accepted', (data) => {
+      console.log('socket event: request_accepted', data);
+      useCustomerStore.getState().handleSocketOrderUpdate(data);
+    });
+
+    socketService.on('ride_started', (data) => {
+      console.log('socket event: ride_started', data);
+      useCustomerStore.getState().handleSocketOrderUpdate(data);
+    });
+
+    socketService.on('driver_arrived', (data) => {
+      console.log('socket event: driver_arrived', data);
+      useCustomerStore.getState().handleSocketOrderUpdate(data);
+    });
+
+    socketService.on('request_completed', (data) => {
+      console.log('socket event: request_completed', data);
+      useCustomerStore.getState().handleSocketOrderUpdate(data);
+    });
+
+    socketService.on('request_cancelled', (data) => {
+      console.log('socket event: request_cancelled', data);
+      useCustomerStore.getState().handleSocketOrderUpdate(data);
+    });
+
+    return () => {
+      subscription.remove();
+      socketService.disconnect();
+    };
   }, []);
 
   return (
@@ -44,10 +77,8 @@ export default function CustomerLayout() {
       <Stack.Screen name="register"         options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="forgot-password"  options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="settings"         options={{ animation: 'slide_from_right' }} />
-      <Stack.Screen name="wallet"           options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="help"             options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="edit-profile"     options={{ animation: 'slide_from_right' }} />
-      <Stack.Screen name="payments"         options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="security"         options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="privacy"          options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="order-details"    options={{ animation: 'slide_from_right' }} />

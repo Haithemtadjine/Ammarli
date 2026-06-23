@@ -4,30 +4,30 @@
 
 import { create } from 'zustand';
 import { STORAGE_KEYS, storage } from '../utils/storage';
+import { api } from '../services/api';
 
-export type UserRole = 'CUSTOMER' | 'DRIVER_BOTTLED' | 'DRIVER_TANKER';
+export type UserRole = 'CLIENT' | 'DRIVER' | 'ADMIN';
 
 export interface UserProfile {
-  name: string;
+  id?: string;
+  firstName?: string;
+  lastName?: string;
   phone: string;
   wilaya?: string;
+  driverType?: 'BOTTLED' | 'TANKER';
 }
 
 interface AuthState {
   userRole: UserRole | null;
   userProfile: UserProfile | null;
   isHydrated: boolean;
+  token: string | null;
 
   // ── Actions ──────────────────────────────────────────────────────────────────
-  setUserRole: (role: UserRole) => Promise<void>;
-  setUserProfile: (profile: UserProfile) => Promise<void>;
+  login: (phone: string, password: string) => Promise<void>;
+  register: (payload: any) => Promise<void>;
   updateUserProfile: (profileUpdates: Partial<UserProfile>) => Promise<void>;
   logout: () => Promise<void>;
-  /**
-   * Loads persisted auth state from AsyncStorage.
-   * Called once on app startup (Splash screen).
-   * Returns the loaded role (or null if none found).
-   */
   hydrate: () => Promise<UserRole | null>;
 }
 
@@ -35,35 +35,63 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   userRole: null,
   userProfile: null,
   isHydrated: false,
+  token: null,
 
-  setUserRole: async (role) => {
-    await storage.set(STORAGE_KEYS.USER_ROLE, role);
-    set({ userRole: role });
+  login: async (phone, password) => {
+    const { data } = await api.post('/auth/phone/login', { phone, password });
+    const { accessToken, user } = data;
+    
+    await storage.set('AUTH_TOKEN', accessToken);
+    await storage.set(STORAGE_KEYS.USER_ROLE, user.role);
+    await storage.set(STORAGE_KEYS.USER_PROFILE, user);
+    
+    set({ token: accessToken, userRole: user.role, userProfile: user });
   },
 
-  setUserProfile: async (profile) => {
-    await storage.set(STORAGE_KEYS.USER_PROFILE, profile);
-    set({ userProfile: profile });
+  register: async (payload) => {
+    const { data } = await api.post('/auth/phone/register', payload);
+    const { accessToken, user } = data;
+
+    await storage.set('AUTH_TOKEN', accessToken);
+    await storage.set(STORAGE_KEYS.USER_ROLE, user.role);
+    await storage.set(STORAGE_KEYS.USER_PROFILE, user);
+    
+    set({ token: accessToken, userRole: user.role, userProfile: user });
   },
 
   updateUserProfile: async (profileUpdates) => {
-    const currentProfile = get().userProfile || { name: '', phone: '', wilaya: '' };
+    const currentProfile = get().userProfile || { phone: '' };
+    try {
+      if (currentProfile.id) {
+        await api.patch(`/users/${currentProfile.id}`, profileUpdates);
+      }
+    } catch (e) {
+      console.warn('Failed to update profile on backend:', e);
+    }
     const newProfile = { ...currentProfile, ...profileUpdates };
     await storage.set(STORAGE_KEYS.USER_PROFILE, newProfile);
     set({ userProfile: newProfile });
   },
 
   logout: async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (e) {
+      console.warn('Logout failed on backend, clearing locally.');
+    }
     await storage.remove(STORAGE_KEYS.USER_ROLE);
     await storage.remove(STORAGE_KEYS.USER_PROFILE);
-    set({ userRole: null, userProfile: null });
+    await storage.remove('AUTH_TOKEN');
+    set({ userRole: null, userProfile: null, token: null });
   },
 
   hydrate: async () => {
     try {
+      const token = await storage.get<string>('AUTH_TOKEN');
       const role = await storage.get<UserRole>(STORAGE_KEYS.USER_ROLE);
       const profile = await storage.get<UserProfile>(STORAGE_KEYS.USER_PROFILE);
-      set({ userRole: role, userProfile: profile, isHydrated: true });
+      
+      set({ token, userRole: role, userProfile: profile, isHydrated: true });
       return role;
     } catch {
       set({ isHydrated: true });

@@ -119,12 +119,17 @@ export default function CustomerRegisterScreen() {
     if (!validate()) return;
     setLoading(true);
     try {
-      await new Promise((r) => setTimeout(r, 1400));
-      await setProfile({ name: name.trim(), phone: phone.trim() });
-      await setUserRole('CUSTOMER');
+      await useAuthStore.getState().register({
+        phone: phone.trim(),
+        firstName: name.trim().split(' ')[0],
+        lastName: name.trim().split(' ').slice(1).join(' ') || ' ',
+        password: password,
+        role: 'CLIENT',
+        wilaya: wilaya,
+      });
       router.replace('/(customer)/(tabs)/' as any);
-    } catch {
-      setPassErr('حدث خطأ. حاول مجدداً.');
+    } catch (e: any) {
+      setPassErr(e?.response?.data?.message || 'حدث خطأ. حاول مجدداً.');
       shake();
     } finally {
       setLoading(false);

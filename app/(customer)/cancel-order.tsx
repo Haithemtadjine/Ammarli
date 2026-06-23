@@ -64,7 +64,7 @@ export default function CancelOrderScreen() {
       
       {/* Header Section */}
       <View style={styles.header}>
-        <View style={{ width: 44 }} /> {/* لضمان توسط العنوان تماماً */}
+        <View style={{ width: 44 }} />
         <Text style={styles.headerTitle}>إلغاء الطلب</Text>
         <TouchableOpacity style={styles.backButton} activeOpacity={0.6} onPress={() => router.back()}>
           <ArrowRight color={THEME_NAVY} size={28} />

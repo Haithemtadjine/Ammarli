@@ -16,8 +16,8 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { useDriverStore } from '../../src/store/useDriverStore';
 
 const COLORS = {
   primary:       '#002147',
@@ -40,6 +40,7 @@ const ORDER_META: Record<string, { icon: string; color: string; bg: string }> = 
 export default function OrderAcceptanceScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const updateDriverOrderStatus = useDriverStore(s => s.updateDriverOrderStatus);
 
   // استقبال بيانات الطلبية من بطاقة الطلب
   const params = useLocalSearchParams<{
@@ -105,6 +106,7 @@ export default function OrderAcceptanceScreen() {
   const handleConfirm = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setConfirmed(true);
+    updateDriverOrderStatus('driving');
     setTimeout(() => {
       router.replace({
         pathname: '/(driver)/order-details' as any,

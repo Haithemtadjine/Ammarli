@@ -63,15 +63,14 @@ export default function SearchingDriverScreen() {
         })
       ])
     ).start();
-
-    // 2. Simulate finding a driver after 10 seconds
-    const timer = setTimeout(() => {
-      // Update order status if needed, then navigate
-      router.replace('/(customer)/order-tracking');
-    }, 10000);
-
-    return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    // Navigate to tracking once a driver is found (socket updates activeOrder)
+    if (activeOrder && (activeOrder.status === 'dispatched' || activeOrder.status === 'accepted' || activeOrder.status === 'in_progress')) {
+      router.replace('/(customer)/order-tracking');
+    }
+  }, [activeOrder?.status, router]);
 
   const barTranslateX = loadingAnim.interpolate({
     inputRange: [0, 1],

@@ -72,6 +72,18 @@ export function useDriverLocation(): DriverLocationState {
             const { latitude: lat, longitude: lng } = location.coords;
             setCoords({ latitude: lat, longitude: lng });
             updateDriverLocation(lat, lng);
+            
+            import('../../../services/socket').then(({ socketService }) => {
+              if (!socketService.socket) {
+                // If not connected, connect
+                const driverId = useDriverStore.getState().registeredDriver?.id || 'default_driver';
+                socketService.connectAsDriver(driverId).then(() => {
+                  socketService.emitLocationUpdate(lat, lng);
+                });
+              } else {
+                socketService.emitLocationUpdate(lat, lng);
+              }
+            });
           },
         );
       } catch (error) {

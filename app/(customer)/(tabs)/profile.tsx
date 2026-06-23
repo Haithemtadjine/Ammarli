@@ -28,7 +28,7 @@ export default function MyAccountScreen() {
   const userProfile = useAuthStore((s) => s.userProfile);
   const logout = useAuthStore((s) => s.logout);
   
-  const userName = userProfile?.name || 'ضيف';
+  const userName = userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName || ''}`.trim() : 'ضيف';
   const userRating = '4.8'; // Mock rating
 
   const handleLogout = () => {

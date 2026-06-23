@@ -111,12 +111,10 @@ export default function CustomerLoginScreen() {
     if (!validate()) return;
     setLoading(true);
     try {
-      // TODO: Replace with real Firebase auth call
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      await setUserRole('CUSTOMER');
+      await useAuthStore.getState().login(phone, password);
       router.replace('/(customer)/(tabs)/' as any);
-    } catch {
-      setPassError('فشل تسجيل الدخول. تحقق من بياناتك.');
+    } catch (e: any) {
+      setPassError(e?.response?.data?.message || 'فشل تسجيل الدخول. تحقق من بياناتك.');
       shake();
     } finally {
       setLoading(false);

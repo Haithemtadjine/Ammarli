@@ -32,6 +32,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/useAuthStore';
+import { api } from '../../src/services/api';
 
 const { width, height } = Dimensions.get('window');
 
@@ -52,7 +53,7 @@ const SettingsScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const userData = {
-    name: userProfile?.name || 'ضيف',
+    name: userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName || ''}`.trim() : 'ضيف',
     image: 'https://randomuser.me/api/portraits/men/32.jpg'
   };
 
@@ -95,19 +96,25 @@ const SettingsScreen = () => {
       return;
     }
     
-    // Simulate API call to verify password and delete account
-    setDeleteModalVisible(false);
-    setPassword('');
-    
-    Alert.alert("تم حذف الحساب", "لقد تم حذف حسابك بنجاح.", [
-      {
-        text: "موافق",
-        onPress: async () => {
-          await logout();
-          router.replace('/(customer)/login');
-        }
+    try {
+      if (userProfile?.id) {
+        await api.delete(`/users/${userProfile.id}`);
       }
-    ]);
+      setDeleteModalVisible(false);
+      setPassword('');
+      
+      Alert.alert("تم حذف الحساب", "لقد تم حذف حسابك بنجاح.", [
+        {
+          text: "موافق",
+          onPress: async () => {
+            await logout();
+            router.replace('/(customer)/login');
+          }
+        }
+      ]);
+    } catch (e) {
+      Alert.alert("خطأ", "حدث خطأ أثناء محاولة حذف الحساب");
+    }
   };
 
   const SettingItem = ({ icon: Icon, title, isDestructive = false, onPress }: any) => (

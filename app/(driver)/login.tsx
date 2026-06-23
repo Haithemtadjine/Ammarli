@@ -16,7 +16,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useDriverStore } from '../../src/store/useDriverStore';
+import { useAuthStore } from '../../src/store/useAuthStore';
 
 const COLORS = {
   primary: '#002147',
@@ -32,9 +32,8 @@ const DriverLoginScreen = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const passwordRef = useRef<TextInput>(null);
-
-  const registeredDriver = useDriverStore(s => s.registeredDriver);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -48,32 +47,23 @@ const DriverLoginScreen = () => {
     }, [])
   );
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError('');
 
-    if (!registeredDriver) {
-      Alert.alert(
-        'لا يوجد حساب',
-        'يجب عليك إنشاء حساب أولاً قبل تسجيل الدخول.',
-        [
-          { text: 'إنشاء حساب', onPress: () => router.push('/(driver)/register') },
-          { text: 'إلغاء', style: 'cancel' },
-        ]
-      );
+    if (!phone || !password) {
+      setError('الرجاء إدخال جميع البيانات');
       return;
     }
 
-    if (phone.trim() !== registeredDriver.phone.trim()) {
-      setError('رقم الهاتف غير صحيح');
-      return;
+    setLoading(true);
+    try {
+      await useAuthStore.getState().login(phone, password);
+      router.replace('/(driver)/(tabs)' as any);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'كلمة المرور غير صحيحة');
+    } finally {
+      setLoading(false);
     }
-
-    if (password !== registeredDriver.password) {
-      setError('كلمة المرور غير صحيحة');
-      return;
-    }
-
-    router.replace('/(driver)/(tabs)' as any);
   };
 
   const FormContent = (

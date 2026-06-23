@@ -32,7 +32,7 @@ const COLORS = {
 export default function OrderTrackingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { userLocation } = useCustomerStore();
+  const { userLocation, driverLocation, setDriverLocation, activeOrder } = useCustomerStore();
 
   const driverName = "خالد";
   const eta = "25 دقيقة";
@@ -48,15 +48,33 @@ export default function OrderTrackingScreen() {
   };
 
   React.useEffect(() => {
-    // Simulate driver arriving after 10 seconds
-    const timer = setTimeout(() => {
-      router.replace('/(customer)/driver-arrived');
-    }, 10000);
-    return () => clearTimeout(timer);
+    import('../../src/services/socket').then(({ socketService }) => {
+      // The connection is handled globally in _layout.tsx, we just listen here.
+      socketService.on('location_update', (data) => {
+        setDriverLocation({ latitude: data.lat, longitude: data.lng });
+      });
+    });
+
+    return () => {
+      import('../../src/services/socket').then(({ socketService }) => {
+        socketService.off('location_update');
+      });
+    };
   }, []);
 
+  React.useEffect(() => {
+    const status = activeOrder?.status;
+    if (status === 'arrived') {
+      router.replace('/(customer)/driver-arrived');
+    } else if (status === 'completed' || status === 'delivered') {
+      router.replace('/(customer)/invoice');
+    } else if (status === 'cancelled') {
+      router.replace('/(customer)/(tabs)');
+    }
+  }, [activeOrder?.status, router]);
+
   const coordinates = userLocation || { latitude: 35.5557, longitude: 6.1748 };
-  const driverCoordinates = { latitude: coordinates.latitude - 0.008, longitude: coordinates.longitude - 0.012 };
+  const dCoordinates = driverLocation || { latitude: coordinates.latitude - 0.008, longitude: coordinates.longitude - 0.012 };
 
   return (
     // ScreenContainer يتولى الـ top inset — لا حاجة لـ marginTop في الهيدر بعد ذلك
@@ -107,8 +125,8 @@ export default function OrderTrackingScreen() {
             <MapView
               style={styles.mapImage}
               initialRegion={{
-                latitude: (coordinates.latitude + driverCoordinates.latitude) / 2,
-                longitude: (coordinates.longitude + driverCoordinates.longitude) / 2,
+                latitude: (coordinates.latitude + dCoordinates.latitude) / 2,
+                longitude: (coordinates.longitude + dCoordinates.longitude) / 2,
                 latitudeDelta: 0.03,
                 longitudeDelta: 0.03,
               }}
@@ -116,7 +134,7 @@ export default function OrderTrackingScreen() {
               zoomEnabled={false}
             >
               <Polyline 
-                coordinates={[driverCoordinates, coordinates]}
+                coordinates={[dCoordinates, coordinates]}
                 strokeColor="#1E88E5"
                 strokeWidth={5}
               />
@@ -125,7 +143,7 @@ export default function OrderTrackingScreen() {
               <Marker coordinate={coordinates} title="موقعك" />
 
               {/* Driver Location */}
-              <Marker coordinate={driverCoordinates} title="موقع السائق" iconType="truck" />
+              <Marker coordinate={dCoordinates} title="موقع السائق" iconType="truck" />
             </MapView>
           )}
         </View>

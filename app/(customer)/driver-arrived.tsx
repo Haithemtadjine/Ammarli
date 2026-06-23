@@ -37,6 +37,15 @@ export default function DriverArrivedScreen() {
     router.replace('/(customer)/invoice');
   };
 
+  useEffect(() => {
+    const status = activeOrder?.status;
+    if (status === 'completed' || status === 'delivered') {
+      router.replace('/(customer)/invoice');
+    } else if (status === 'cancelled') {
+      router.replace('/(customer)/(tabs)');
+    }
+  }, [activeOrder?.status, router]);
+
   const coordinates = userLocation || { latitude: 35.5557, longitude: 6.1748 };
   // Driver is very close
   const driverCoordinates = { latitude: coordinates.latitude + 0.00015, longitude: coordinates.longitude + 0.00015 };

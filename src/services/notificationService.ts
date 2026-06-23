@@ -88,7 +88,8 @@ export async function setupPushNotifications() {
   ]);
 
   // Category for active order tap — no buttons, just opens the app
-  await Notifications.setNotificationCategoryAsync('ACTIVE_ORDER', []);
+  // Removed because setNotificationCategoryAsync requires at least one action.
+  // Tap action opens the app by default.
 }
 
 // ── 1a. Target: Customer (When a Driver is Found) ─────────────────────────

@@ -64,10 +64,25 @@ export default function DriverRatingScreen() {
     }
   };
 
-  const handleFinish = () => {
-    // In a real app, you would submit the rating here
-    useCustomerStore.getState().cancelOrder(); // Clear the order
-    router.replace('/(customer)/(tabs)');
+  const handleFinish = async () => {
+    try {
+      const activeOrder = useCustomerStore.getState().activeOrder;
+      // In a real app we'd get the driver's userId from the order
+      const driverId = 2; 
+
+      await import('../../src/services/api').then(({ api }) => {
+        return api.post('/rating', {
+          targetId: driverId,
+          rating,
+          comment: `${selectedChips.join(', ')} - ${comment}`,
+        });
+      });
+    } catch (e) {
+      console.warn('Failed to submit rating', e);
+    } finally {
+      useCustomerStore.getState().cancelOrder(); // Clear the order
+      router.replace('/(customer)/(tabs)' as any);
+    }
   };
 
   const renderStars = () => {

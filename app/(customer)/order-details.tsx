@@ -113,7 +113,7 @@ export default function OrderDetailsScreen() {
   const userLocation = useCustomerStore((s) => s.userLocation);
   const draftOrder = useCustomerStore((s) => s.draftOrder);
 
-  const handleOrderNow = () => {
+  const handleOrderNow = async () => {
     if (totalPrice === 0) return; // Don't order if cart is empty
     
     const selectedLocation = draftOrder.location;
@@ -139,16 +139,20 @@ export default function OrderDetailsScreen() {
       });
     });
 
-    createOrder({
-      id: Math.floor(Math.random() * 100000),
-      type: 'Bottled',
-      status: 'searching',
-      price: totalPrice,
-      location: selectedLocation,
-      locationName: selectedLocation.address || 'موقع التوصيل الحالي',
-      items: orderItems,
-    });
-    router.push('/(customer)/searching-driver');
+    try {
+      await createOrder({
+        id: Math.floor(Math.random() * 100000),
+        type: 'Bottled',
+        status: 'searching',
+        price: totalPrice,
+        location: selectedLocation,
+        locationName: selectedLocation.address || 'موقع التوصيل الحالي',
+        items: orderItems,
+      });
+      router.push('/(customer)/searching-driver');
+    } catch (e) {
+      // Error handled by store/api interceptors
+    }
   };
 
   const handleSchedule = () => {

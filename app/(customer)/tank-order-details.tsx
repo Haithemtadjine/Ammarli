@@ -86,7 +86,7 @@ export default function TankDeliveryDetailsScreen() {
     return (quantity * basePricePerLiter) + locationFee;
   }, [quantity, tankLocation, floor]);
 
-  const handleOrderNow = () => {
+  const handleOrderNow = async () => {
     if (quantity <= 0) {
       triggerShake();
       Alert.alert('تنبيه', 'يرجى إدخال الكمية المطلوبة باللتر أولاً');
@@ -98,21 +98,26 @@ export default function TankDeliveryDetailsScreen() {
       Alert.alert('تنبيه', 'يرجى تحديد موقع التوصيل أولاً');
       return;
     }
-    createOrder({
-      id: Math.floor(Math.random() * 100000),
-      type: type as string,
-      status: 'searching',
-      price: totalPrice,
-      location: selectedLocation,
-      locationName: selectedLocation.address || 'موقع التوصيل الحالي',
-      items: [{
-        brand: type === 'Well' ? 'مياه آبار' : type === 'Spring' ? 'مياه ينابيع' : 'مياه أشغال',
-        size: `${quantity} لتر`,
-        qty: 1,
-        unitPrice: totalPrice,
-      }]
-    });
-    router.push('/(customer)/searching-driver');
+    try {
+      await createOrder({
+        id: Math.floor(Math.random() * 100000),
+        type: type as string,
+        status: 'searching',
+        price: totalPrice,
+        quantity: quantity.toString(),
+        location: selectedLocation,
+        locationName: selectedLocation.address || 'موقع التوصيل الحالي',
+        items: [{
+          brand: type === 'Well' ? 'مياه آبار' : type === 'Spring' ? 'مياه ينابيع' : 'مياه أشغال',
+          size: `${quantity} لتر`,
+          qty: 1,
+          unitPrice: totalPrice,
+        }]
+      });
+      router.push('/(customer)/searching-driver');
+    } catch (e) {
+      // Error handled by store/api interceptors
+    }
   };
 
   return (
