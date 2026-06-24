@@ -88,7 +88,7 @@ export default function OrderAcceptanceScreen() {
     if (orderType === 'spring_water') {
       const p = parseFloat(bucketPrice);
       setTotalPrice(!isNaN(p) && p >= 0 ? (capacityLiters / BUCKET_CAPACITY) * p : 0);
-    } else if (orderType === 'well_water') {
+    } else if (orderType === 'well_water' || orderType === 'construction_water') {
       const p = parseFloat(wellWaterPrice);
       setTotalPrice(!isNaN(p) && p >= 0 ? p : 0);
     } else if (orderType === 'bottles') {
@@ -189,7 +189,7 @@ export default function OrderAcceptanceScreen() {
             )}
 
             {/* السعة */}
-            {(orderType === 'spring_water' || orderType === 'well_water') && (
+            {(orderType === 'spring_water' || orderType === 'well_water' || orderType === 'construction_water') && (
               <View style={styles.capacityRow}>
                 <Text style={styles.capacityLabel}>السعة</Text>
                 <Text style={styles.capacityValue}>{capacityLiters} لتر</Text>
@@ -258,7 +258,7 @@ export default function OrderAcceptanceScreen() {
             )}
 
             {/* ── قسم إدخال السعر الإجمالي (يظهر لآبار فقط) ── */}
-            {orderType === 'well_water' && (
+            {(orderType === 'well_water' || orderType === 'construction_water') && (
               <View style={styles.inputSection}>
                 <View style={styles.inputTexts}>
                    <Text style={styles.inputLabel}>أدخل السعر الإجمالي</Text>
@@ -281,7 +281,7 @@ export default function OrderAcceptanceScreen() {
             )}
 
             {/* ── السعر الإجمالي ── */}
-            {orderType !== 'well_water' && (
+            {orderType !== 'well_water' && orderType !== 'construction_water' && (
               <View style={styles.totalRow}>
                  <View style={styles.totalTexts}>
                     <Text style={styles.totalLabel}>السعر الإجمالي</Text>

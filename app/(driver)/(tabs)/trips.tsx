@@ -143,7 +143,6 @@ const OrderCard = ({ category, title, date, customer, price, status, cancelReaso
       ) : null}
 
       <View style={styles.cardFooter}>
-        <Text style={styles.orderPrice}>{price} د.ج</Text>
         <View style={[styles.statusBadge, { backgroundColor: badge.bg }]}>
           <Text style={[styles.statusTextBadge, { color: badge.color }]}>{status}</Text>
         </View>

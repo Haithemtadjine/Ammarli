@@ -16,11 +16,12 @@ import {
 import { SplashScreen, Stack, router } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { setupPushNotifications } from '../src/services/notificationService';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { I18nManager, Platform } from 'react-native';
+import { I18nManager, Platform, View } from 'react-native';
+import NewOrderCard from '../components/NewOrderCard';
 
 // Force RTL globally for the entire app (Mobile)
 I18nManager.allowRTL(true);
@@ -44,6 +45,24 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
 // Initialize i18n side-effect (must be imported before any screen renders)
 import '../src/shared/localization/i18n';
 
+// ─── Notifee Global Background Handler ──────────────────────────────────────
+// 🚨 CRITICAL: This MUST live at module scope (outside any component/hook).
+//    When the app is fully killed, React components don't exist — only this
+//    top-level registration survives and allows Notifee to wake the JS engine.
+import notifee, { EventType, Event as NotifeeEvent } from '@notifee/react-native';
+
+notifee.onBackgroundEvent(async ({ type, detail }: NotifeeEvent) => {
+  if (type === EventType.ACTION_PRESS) {
+    // Always cancel the notification immediately, regardless of action
+    if (detail.notification?.id) {
+      await notifee.cancelNotification(detail.notification.id);
+    }
+    // 'accept' and 'decline' navigation is handled by incoming-order.tsx itself
+    // when it mounts via fullScreenAction. No router call needed here.
+  }
+});
+// ────────────────────────────────────────────────────────────────────────────
+
 // Prevent native splash from hiding until fonts are loaded
 SplashScreen.preventAutoHideAsync();
 
@@ -54,7 +73,40 @@ export default function RootLayout() {
     'Cairo-Bold': Cairo_700Bold,
   });
 
+  const [incomingOrderPayload, setIncomingOrderPayload] = useState<any>(null);
+
   useEffect(() => {
+    // ── Notifee Wake-up & Foreground Listeners ─────────────────────────────────
+    async function checkInitialWakeup() {
+      const initialNotification = await notifee.getInitialNotification();
+      if (initialNotification?.notification?.data?.type === 'INCOMING_ORDER_FULLSCREEN') {
+        const payloadStr = initialNotification.notification.data.payload as string;
+        setIncomingOrderPayload(JSON.parse(payloadStr));
+        if (initialNotification.notification.id) {
+          await notifee.cancelNotification(initialNotification.notification.id);
+        }
+      }
+    }
+    checkInitialWakeup();
+
+    const unsubscribeForeground = notifee.onForegroundEvent(async ({ type, detail }) => {
+      if (type === EventType.DELIVERED && detail.notification?.data?.type === 'INCOMING_ORDER_FULLSCREEN') {
+        const payloadStr = detail.notification.data.payload as string;
+        setIncomingOrderPayload(JSON.parse(payloadStr));
+        if (detail.notification.id) {
+          await notifee.cancelNotification(detail.notification.id);
+        }
+      }
+      if (type === EventType.PRESS && detail.notification?.data?.type === 'INCOMING_ORDER_FULLSCREEN') {
+        const payloadStr = detail.notification.data.payload as string;
+        setIncomingOrderPayload(JSON.parse(payloadStr));
+        if (detail.notification.id) {
+          await notifee.cancelNotification(detail.notification.id);
+        }
+      }
+    });
+    // ────────────────────────────────────────────────────────────────────────────
+
     // إعداد قنوات الإشعارات والصلاحيات
     setupPushNotifications();
 
@@ -124,7 +176,10 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
 
-    return () => subscription.remove();
+    return () => {
+      subscription.remove();
+      unsubscribeForeground();
+    };
   }, [fontsLoaded, fontError]);
 
   // NOTE: We always render the Stack so expo-router can process
@@ -141,6 +196,29 @@ export default function RootLayout() {
           <Stack.Screen name="(customer)" />
           <Stack.Screen name="(driver)" />
         </Stack>
+        
+        {/* ── System Integration: Render NewOrderCard globally when active ── */}
+        {incomingOrderPayload && (
+          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, elevation: 9999, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+            <NewOrderCard 
+              customerName={incomingOrderPayload.customerName}
+              price={parseInt(incomingOrderPayload.price) || 2500}
+              address={incomingOrderPayload.address}
+              distance={incomingOrderPayload.distance}
+              rating={parseFloat(incomingOrderPayload.rating) || 4.8}
+              orderType={incomingOrderPayload.orderType as any}
+              onAccept={() => {
+                setIncomingOrderPayload(null);
+                // Here you would navigate to the acceptance screen and pass params, similar to background notification click.
+                router.push({
+                  pathname: '/(driver)/order-acceptance' as any,
+                  params: { ...incomingOrderPayload, items: JSON.stringify([{ id: 1, name: 'مياه', qty: 1, unit: 'طلبية', price: incomingOrderPayload.price ?? '2500', image: 'https://img.icons8.com/3d-fluency/94/water-bottle.png' }]) }
+                });
+              }}
+              onDecline={() => setIncomingOrderPayload(null)}
+            />
+          </View>
+        )}
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

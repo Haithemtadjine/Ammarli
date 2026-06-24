@@ -1,6 +1,11 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import notifee, {
+  AndroidImportance,
+  AndroidVisibility,
+  AndroidCategory,
+} from '@notifee/react-native';
 
 // Set handler to ALWAYS show notification (even when app is open or in background)
 Notifications.setNotificationHandler({
@@ -24,6 +29,34 @@ export async function setupPushNotifications() {
       enableVibrate: true,
       sound: 'default',
     });
+
+    await Notifications.setNotificationChannelAsync('urgent-driver-orders', {
+      name: 'Urgent Driver Orders',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 500, 250, 500],
+      lightColor: '#FF231F7C',
+      enableVibrate: true,
+      sound: 'default',
+    });
+
+    // ── قنوات الزبون ───────────────────────────────────────────────────────
+    await Notifications.setNotificationChannelAsync('customer-driver-found', {
+      name: 'تم العثور على سائق',
+      importance: Notifications.AndroidImportance.HIGH,
+      enableVibrate: true,
+      sound: 'driver_found.wav',   // assets/sounds/driver_found.wav
+    });
+
+    await Notifications.setNotificationChannelAsync('customer-driver-arrived', {
+      name: 'السائق عند الباب',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      enableVibrate: true,
+      sound: 'driver_arrived.wav', // assets/sounds/driver_arrived.wav
+    });
+
+    // ── Notifee Full-Screen Channel (طلبية جديدة — شاشة كاملة) ────────────
+    await setupNotifeeOrderChannel();
   }
 
   if (Device.isDevice) {
@@ -58,20 +91,37 @@ export async function setupPushNotifications() {
   await Notifications.setNotificationCategoryAsync('ACTIVE_ORDER', []);
 }
 
-// ── 1. Target: Customer (When Driver Arrives) ─────────────────────────────
+// ── 1a. Target: Customer (When a Driver is Found) ─────────────────────────
+export async function triggerDriverFoundNotification() {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: '🚚 تم العثور على سائق!',
+      body: 'تم العثور على سائق لطلبيتك. اضغط هنا لتتبع موقع السائق.',
+      sound: 'driver_found.wav', // iOS: place file in app bundle root
+      categoryIdentifier: 'CUSTOMER_ORDER_TRACKING',
+      data: { type: 'CUSTOMER_ORDER_TRACKING' },
+      priority: Notifications.AndroidNotificationPriority.HIGH,
+    },
+    trigger: {
+      channelId: 'customer-driver-found', // Android: uses driver_found.wav channel
+    },
+  });
+}
+
+// ── 1b. Target: Customer (When Driver Arrives at location) ─────────────────
 export async function triggerDriverArrivedNotification() {
   await Notifications.scheduleNotificationAsync({
     content: {
       title: 'السائق في الخارج! 📍',
       body: 'سائقك وصل وينتظرك بالخارج. الرجاء استلام الطلبية.',
-      sound: true,
+      sound: 'driver_arrived.wav', // iOS: place file in app bundle root
       categoryIdentifier: 'CUSTOMER_ORDER_TRACKING',
-      data: {
-        type: 'CUSTOMER_ORDER_TRACKING',
-      },
+      data: { type: 'CUSTOMER_ORDER_TRACKING' },
       priority: Notifications.AndroidNotificationPriority.MAX,
     },
-    trigger: null,
+    trigger: {
+      channelId: 'customer-driver-arrived', // Android: uses driver_arrived.wav channel
+    },
   });
 }
 
@@ -81,14 +131,16 @@ export async function triggerNewOrderNotification() {
     content: {
       title: 'طلبية مياه جديدة! 💧',
       body: 'يوجد زبون جديد في منطقتك ينتظر التوصيل.',
-      sound: true,
+      sound: 'default',
       categoryIdentifier: 'NEW_ORDER', // Shows "قبول" and "رفض" buttons
       data: {
         type: 'NEW_ORDER',
       },
       priority: Notifications.AndroidNotificationPriority.MAX,
     },
-    trigger: null,
+    trigger: {
+      channelId: 'urgent-driver-orders',
+    },
   });
 }
 
@@ -98,18 +150,99 @@ export async function triggerPendingOrderReminder() {
     content: {
       title: '⏳ تذكير: طلبية معلقة',
       body: 'لا تنسَ أن لديك طلبية قيد التوصيل حالياً. اضغط للعودة للتفاصيل.',
-      sound: true,
+      sound: 'default',
       categoryIdentifier: 'ACTIVE_ORDER',
       data: {
         type: 'ACTIVE_ORDER',
       },
       priority: Notifications.AndroidNotificationPriority.HIGH,
     },
-    trigger: null,
+    trigger: {
+      channelId: 'urgent-driver-orders',
+    },
   });
 }
 
 // ── Clear notification tray when the user comes back to the app ──────────────
 export async function clearAllLocalNotifications() {
   await Notifications.dismissAllNotificationsAsync();
+  await notifee.cancelAllNotifications();
+}
+
+// ── Notifee: Full-Screen Order Channel Setup ──────────────────────────────────
+// Call this once inside setupPushNotifications() on Android.
+export async function setupNotifeeOrderChannel() {
+  if (Platform.OS !== 'android') return;
+  await notifee.createChannel({
+    id: 'incoming-order-fullscreen',
+    name: 'طلبية جديدة (شاشة كاملة)',
+    importance: AndroidImportance.HIGH,
+    visibility: AndroidVisibility.PUBLIC, // Visible on locked screen
+    vibration: true,
+    vibrationPattern: [0, 800, 400, 800, 400, 800, 400], // Strong, continuous-feeling vibration
+    sound: 'alert',  // → android/app/src/main/res/raw/alert.mp3
+  });
+}
+
+// ── Notifee: Trigger Full-Screen Incoming Order Notification ─────────────────
+// AndroidCategory.CALL = highest OS priority — bypasses DND & lock screen.
+// fullScreenAction opens the app's main Activity, expo-router then routes
+// to /(driver)/incoming-order via the notification data.
+export async function triggerFullScreenOrderNotification(params?: {
+  customerName?: string;
+  price?: string;
+  address?: string;
+  distance?: string;
+  rating?: string;
+  orderType?: string;
+}) {
+  const p = params ?? {};
+  
+  // Package the entire order payload into a string so the UI can parse it easily
+  const orderPayload = {
+    customerName: p.customerName ?? 'زبون جديد',
+    price:        p.price        ?? '2500',
+    address:      p.address      ?? 'الجزائر العاصمة',
+    distance:     p.distance     ?? '2.5 كم',
+    rating:       p.rating       ?? '4.8',
+    orderType:    p.orderType    ?? 'spring_water',
+  };
+
+  await notifee.displayNotification({
+    id: 'incoming-order',
+    title: '<b>🚨 طلبية مياه جديدة! 💧</b>',
+    body: `${orderPayload.customerName} — ${orderPayload.distance} — ${orderPayload.price} د.ج\nقم بفتح التطبيق لرؤية التفاصيل`,
+    data: {
+      type:    'INCOMING_ORDER_FULLSCREEN',
+      payload: JSON.stringify(orderPayload),
+    },
+    android: {
+      channelId:  'incoming-order-fullscreen',
+      importance: AndroidImportance.HIGH,
+      category:   AndroidCategory.CALL,        // Highest OS priority
+      visibility: AndroidVisibility.PUBLIC,
+      ongoing:    true,                        // Prevents the user from swiping it away natively
+      autoCancel: false,
+
+      // ── Full-Screen Intent: wakes device, shows over other apps ───────────
+      fullScreenAction: {
+        id:             'incoming_order_screen',
+        launchActivity: 'default',             // Opens MainActivity → expo-router
+      },
+
+      // ── Tray Action Buttons (fallback if device shows tray instead) ───────
+      actions: [
+        {
+          title:       '✅ قبول',
+          pressAction: { id: 'accept', launchActivity: 'default' },
+        },
+        {
+          title:       '❌ رفض',
+          pressAction: { id: 'decline' },
+        },
+      ],
+
+      pressAction: { id: 'default', launchActivity: 'default' },
+    },
+  });
 }

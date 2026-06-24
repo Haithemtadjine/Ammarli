@@ -153,21 +153,18 @@ const DriverLoginScreen = () => {
           <Ionicons name='arrow-forward' size={24} color={COLORS.primary} style={styles.loginArrow} />
         </TouchableOpacity>
 
+        {/* Sign Up Link */}
+        <TouchableOpacity
+          style={[styles.signUpLink, { marginTop: 25 }]}
+          onPress={() => router.push('/(driver)/register')}
+        >
+          <Text style={styles.signUpText}>
+            ليس لديك حساب؟{' '}
+            <Text style={styles.signUpBold}>إنشاء حساب جديد</Text>
+          </Text>
+        </TouchableOpacity>
+
       </View>
-
-      {/* Spacer to push signup link to bottom */}
-      <View style={styles.spacer} />
-
-      {/* Sign Up Link */}
-      <TouchableOpacity
-        style={styles.signUpLink}
-        onPress={() => router.push('/(driver)/register')}
-      >
-        <Text style={styles.signUpText}>
-          ليس لديك حساب؟{' '}
-          <Text style={styles.signUpBold}>إنشاء حساب جديد</Text>
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 

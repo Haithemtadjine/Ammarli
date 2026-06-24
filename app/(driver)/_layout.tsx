@@ -3,8 +3,8 @@ import { Stack } from 'expo-router';
 import { I18nManager, AppState, AppStateStatus } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { useDriverStore } from '../../src/store/useDriverStore';
+import * as Notifications from 'expo-notifications';
 import {
-  triggerNewOrderNotification,
   triggerPendingOrderReminder,
   clearAllLocalNotifications,
 } from '../../src/services/notificationService';
@@ -14,7 +14,8 @@ I18nManager.forceRTL(true);
 
 export default function DriverLayout() {
   const appState = useRef<AppStateStatus>(AppState.currentState);
-  const incomingOrderTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Store the scheduled notification ID so we can cancel it if driver returns
+  const scheduledNotifId = useRef<string | null>(null);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', async (nextState) => {
@@ -23,30 +24,42 @@ export default function DriverLayout() {
 
       // ── App went to background ──────────────────────────────────────────
       if (prevState === 'active' && nextState === 'background') {
-        // Read driver state at the moment of backgrounding
         const storeState = useDriverStore.getState();
         const { driverStatus, activeDriverOrder, registeredDriver } = storeState;
 
         if (activeDriverOrder) {
-          // Driver has an active accepted order → trigger immediate "active order" notification
+          // Driver has an active accepted order → fire "pending order" notification immediately
           await triggerPendingOrderReminder();
+
         } else if (driverStatus === 'AVAILABLE' && registeredDriver) {
-          // Driver is online and available → schedule a "new order" notification after 5 s
-          incomingOrderTimer.current = setTimeout(async () => {
-            // Double-check the app is still in background before firing
-            if (AppState.currentState === 'background') {
-              await triggerNewOrderNotification();
-            }
-          }, 5000);
+          // Driver is online and available → schedule "new order" notification via OS.
+          // We use a native `seconds` trigger instead of a JS setTimeout so the OS
+          // daemon handles the delay — the JS thread is free to be frozen by the OS.
+          const id = await Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'طلبية مياه جديدة! 💧',
+              body: 'يوجد زبون جديد في منطقتك ينتظر التوصيل.',
+              sound: 'default',
+              categoryIdentifier: 'NEW_ORDER',
+              data: { type: 'NEW_ORDER' },
+              priority: Notifications.AndroidNotificationPriority.MAX,
+            },
+            trigger: {
+              channelId: 'urgent-driver-orders',
+              seconds: 5,       // OS fires this after 5s — no JS thread needed
+              repeats: false,
+            },
+          });
+          scheduledNotifId.current = id;
         }
       }
 
       // ── App came back to foreground ─────────────────────────────────────
       if (prevState === 'background' && nextState === 'active') {
-        // Cancel any pending incoming-order timer
-        if (incomingOrderTimer.current) {
-          clearTimeout(incomingOrderTimer.current);
-          incomingOrderTimer.current = null;
+        // Cancel the pending OS-scheduled notification if driver came back before it fired
+        if (scheduledNotifId.current) {
+          await Notifications.cancelScheduledNotificationAsync(scheduledNotifId.current);
+          scheduledNotifId.current = null;
         }
         // Clear the notification tray so stale alerts are dismissed
         await clearAllLocalNotifications();
@@ -55,13 +68,34 @@ export default function DriverLayout() {
 
     return () => {
       subscription.remove();
-      if (incomingOrderTimer.current) {
-        clearTimeout(incomingOrderTimer.current);
+      // Cancel on unmount as well
+      if (scheduledNotifId.current) {
+        Notifications.cancelScheduledNotificationAsync(scheduledNotifId.current);
       }
     };
   }, []);
 
   return (
-    <Stack screenOptions={{ headerShown: false, animation: 'slide_from_left' }} />
+    <Stack screenOptions={{ headerShown: false, animation: 'slide_from_left' }}>
+      {/* Full-screen overlay for incoming new orders — covers lock screen */}
+      <Stack.Screen
+        name="incoming-order"
+        options={{
+          presentation:  'fullScreenModal',
+          headerShown:   false,
+          animation:     'fade',
+          gestureEnabled: false,  // Prevent swipe-dismiss
+        }}
+      />
+      <Stack.Screen
+        name="customer-rating"
+        options={{
+          presentation: 'transparentModal',
+          headerShown: false,
+          animation: 'fade',
+        }}
+      />
+    </Stack>
   );
 }
+

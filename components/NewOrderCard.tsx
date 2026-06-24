@@ -122,12 +122,7 @@ const NewOrderCard = ({
         {/* السعر (يسار في RTL) */}
         <View style={styles.priceSection}>
           <Text style={styles.newOrderLabel}>طلب جديد</Text>
-          {orderType !== ORDER_TYPES.SPRING && (
-            <Text style={styles.priceText}>
-              {price.toLocaleString('ar-DZ')}{' '}
-              <Text style={styles.currency}>د.ج</Text>
-            </Text>
-          )}
+
         </View>
 
         {/* الزبون (يمين في RTL) */}

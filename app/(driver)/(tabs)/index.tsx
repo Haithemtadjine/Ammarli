@@ -9,6 +9,7 @@ import * as Location from 'expo-location';
 import { useDriverStore } from '../../../src/store/useDriverStore';
 import NewOrderCard, { ORDER_TYPES, OrderType } from '../../../components/NewOrderCard';
 import UpdateInventoryModal from '../../../components/UpdateInventoryModal';
+import { useDriverAlert } from '../../../src/hooks/useDriverAlert';
 
 const { width } = Dimensions.get('window');
 const COLORS = { 
@@ -178,6 +179,9 @@ export default function DriverDashboardScreen() {
   const router  = useRouter();
   const [isOnline, setIsOnline] = useState(true);
   const [showOrder, setShowOrder] = useState(false);
+
+  // تشغيل صوت تنبيه + اهتزاز متكرر طوال مدة ظهور بطاقة الطلبية
+  useDriverAlert(showOrder);
 
   // ── موقع السائق ────────────────────────────────────────────────
   const [showLocationModal,  setShowLocationModal]  = useState(false);
