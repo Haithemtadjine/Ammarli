@@ -90,6 +90,7 @@ export default function DriverNotificationsScreen() {
       </View>
     </TouchableOpacity>
   ));
+  NotificationCard.displayName = 'NotificationCard';
 
   return (
     <ScreenContainer style={styles.container}>

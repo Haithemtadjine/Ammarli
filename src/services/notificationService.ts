@@ -92,6 +92,43 @@ export async function setupPushNotifications() {
   // Tap action opens the app by default.
 }
 
+/**
+ * Registers the device's Expo Push Token with the backend so the server
+ * can send FCM/APNs push notifications to this device.
+ * Safe to call on every app launch — the backend should deduplicate tokens.
+ */
+export async function registerPushTokenWithBackend(): Promise<void> {
+  if (!Device.isDevice) return; // Push tokens only work on real devices
+
+  try {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      console.log('[Push] Permission not granted — skipping token registration');
+      return;
+    }
+
+    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const pushToken = tokenData.data;
+
+    if (!pushToken) return;
+
+    // Dynamically import api to avoid circular deps at module level
+    const { api } = await import('./api');
+    await api.patch('/users/me/push-token', { pushToken });
+    console.log('[Push] Token registered with backend:', pushToken);
+  } catch (err) {
+    // Non-fatal — push will degrade gracefully to socket-only notifications
+    console.warn('[Push] Failed to register push token:', err);
+  }
+}
+
 // ── 1a. Target: Customer (When a Driver is Found) ─────────────────────────
 export async function triggerDriverFoundNotification() {
   await Notifications.scheduleNotificationAsync({

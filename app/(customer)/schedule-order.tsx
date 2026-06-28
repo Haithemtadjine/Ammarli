@@ -46,7 +46,7 @@ const ScheduleOrderScreen = () => {
   // استلام البيانات من الحالة العامة للتطبيق
   const draftOrder = useCustomerStore((s) => s.draftOrder);
   const userLocation = useCustomerStore((s) => s.userLocation);
-  const addScheduledOrder = useCustomerStore((s) => s.addScheduledOrder);
+  const scheduleOrder = useCustomerStore((s) => s.scheduleOrder);
   const acceptScheduledOrder = useCustomerStore((s) => s.acceptScheduledOrder);
   const addNotification = useCustomerStore((s) => s.addNotification);
   const addToFavorites = useCustomerStore((s) => s.addToFavorites);
@@ -77,21 +77,24 @@ const ScheduleOrderScreen = () => {
     router.push('/(customer)/location-picker');
   };
 
-  const handleConfirmSchedule = () => {
-    const scheduledId = `SCH-${Math.floor(Math.random() * 100000)}`;
-
-    const newScheduledOrder: ScheduledOrder = {
-      id: scheduledId,
+  const handleConfirmSchedule = async () => {
+    const fakeOrder: Order = {
+      id: '',
+      type: actualIsTanker ? 'Tanker' : 'Bottled',
       status: 'pending',
-      title: orderSummary.title,
-      schedule: `(${date} | ${time})`,
-      iconUri: actualIsTanker 
-        ? 'https://img.icons8.com/3d-fluency/94/truck.png'
-        : 'https://img.icons8.com/3d-fluency/94/water-bottle.png',
+      quantity: draftOrder.tankerDetails?.quantity?.toString() || '1',
+      price: 2500, // Mock price for now
+      locationName: currentLocation,
+      location: userLocation || { latitude: 0, longitude: 0 },
+      waterType: (draftOrder.tankerDetails as any)?.waterType || 'spring_water',
+      items: draftOrder.bottledWaterCart ? (Object.values(draftOrder.bottledWaterCart) as any[]) : []
     };
 
-    // حفظ الطلب في قائمة الطلبات المجدولة (القادمة)
-    addScheduledOrder(newScheduledOrder);
+    try {
+      await scheduleOrder(fakeOrder, date, time);
+    } catch (e) {
+      console.log('Error scheduling order', e);
+    }
 
     // إضافة إشعار
     addNotification({
@@ -108,22 +111,6 @@ const ScheduleOrderScreen = () => {
       setShowToast(false);
       router.push('/(customer)/(tabs)/activities');
     }, 2000);
-
-    // ─── محاكاة قبول السائق بعد 20 ثانية ───
-    setTimeout(() => {
-      acceptScheduledOrder(scheduledId, {
-        name: 'أحمد علي',
-        rating: '4.9',
-        image: 'https://randomuser.me/api/portraits/men/45.jpg',
-        phone: '0550112233'
-      });
-
-      addNotification({
-        title: 'تم تأكيد موعدك المجدول',
-        description: `السائق أحمد علي أكد استلام طلبك ليوم ${date} الساعة ${time}. يمكنك التواصل معه الآن.`,
-        type: 'schedule'
-      });
-    }, 20000);
   };
 
   return (

@@ -13,7 +13,7 @@ import {
   StatusBar,
   KeyboardAvoidingView
 } from 'react-native';
-import { Star, Check, ChevronRight } from 'lucide-react-native';
+import { Star, Check, ChevronRight, User } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useCustomerStore } from '../../src/store/useCustomerStore';
@@ -25,8 +25,9 @@ const THEME_YELLOW = '#FFCC00';
 export default function DriverRatingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const driverName = "خالد";
-  const driverImage = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80';
+  const { activeOrder } = useCustomerStore();
+  const driverName = activeOrder?.driverInfo?.name || "السائق";
+  const driverImage = activeOrder?.driverInfo?.avatarUrl || null;
 
   const [rating, setRating] = useState(5);
   const [selectedChips, setSelectedChips] = useState<string[]>([]);
@@ -122,8 +123,13 @@ export default function DriverRatingScreen() {
         {/* Top Driver Card */}
         <View style={styles.driverSection}>
           <View style={styles.avatarWrapper}>
-            {/* The image in the screenshot looks like a generic person icon, but we use the provided avatar */}
-            <Image source={{ uri: driverImage }} style={styles.avatar} />
+            {driverImage ? (
+              <Image source={{ uri: driverImage }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, { backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' }]}>
+                <User color="#64748B" size={24} />
+              </View>
+            )}
           </View>
           <Text style={styles.driverName}>{driverName}</Text>
           <Text style={styles.questionText}>كيف كانت تجربتك مع السائق؟</Text>

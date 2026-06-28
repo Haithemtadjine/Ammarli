@@ -13,6 +13,8 @@ import {
   Alert,
   Image,
   TextInput,
+  Animated,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -49,29 +51,25 @@ const ALL_BRANDS = [
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 /** بطاقة اختيار نوع المركبة — تدعم صورة أو أيقونة */
-const VehicleCard = ({ title, image, active, onPress }: any) => (
+const VehicleCard = ({ title, iconName, active, onPress }: any) => (
   <TouchableOpacity
     style={[styles.selectionCard, active && styles.selectionCardActive]}
     onPress={onPress}
     activeOpacity={0.8}
   >
-    <Image source={image} style={styles.vehicleImage} resizeMode="contain" />
+    <MaterialCommunityIcons name={iconName} size={44} color={active ? COLORS.primary : COLORS.textGray} style={{ marginBottom: 6 }} />
     <Text style={[styles.selectionTitle, active && styles.selectionTitleActive]}>{title}</Text>
   </TouchableOpacity>
 );
 
 /** بطاقة اختيار نوع المياه — صورة + نص */
-const TypeChip = ({ label, imageSource, active, onPress }: any) => (
+const TypeChip = ({ label, iconName, active, onPress }: any) => (
   <TouchableOpacity
     style={[styles.chip, active && styles.chipActive]}
     onPress={onPress}
     activeOpacity={0.8}
   >
-    <Image
-      source={imageSource}
-      style={{ width: 44, height: 44, marginBottom: 6, opacity: active ? 1 : 0.4 }}
-      resizeMode="contain"
-    />
+    <MaterialCommunityIcons name={iconName} size={32} color={active ? COLORS.primary : COLORS.textGray} style={{ marginBottom: 6 }} />
     <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
   </TouchableOpacity>
 );
@@ -81,6 +79,18 @@ const TypeChip = ({ label, imageSource, active, onPress }: any) => (
 const DriverRegistrationScreen = () => {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const shakeAnim = useRef(new Animated.Value(0)).current;
+
+  const shake = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnim, { toValue: 8,  duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -8, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 6,  duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -6, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0,  duration: 60, useNativeDriver: true }),
+    ]).start();
+  };
 
   const [vehicleType, setVehicleType] = useState<'tanker' | 'bottled'>('tanker');
   const [waterType,   setWaterType]   = useState('spring');
@@ -109,17 +119,21 @@ const DriverRegistrationScreen = () => {
   const handleRegister = async () => {
     if (!fullName.trim() || !phone.trim() || !password.trim() || !confirmPassword.trim() || !license.trim()) {
       Alert.alert('بيانات ناقصة', 'يرجى تعبئة جميع الحقول قبل المتابعة.');
+      shake();
       return;
     }
     if (password !== confirmPassword) {
       Alert.alert('خطأ', 'كلمتا المرور غير متطابقتين.');
+      shake();
       return;
     }
     if (vehicleType === 'bottled' && selectedBrands.length === 0) {
       Alert.alert('اختر علامة تجارية', 'يرجى اختيار علامة تجارية واحدة على الأقل.');
+      shake();
       return;
     }
 
+    setLoading(true);
     try {
       await useAuthStore.getState().register({
         phone: phone.trim(),
@@ -137,12 +151,15 @@ const DriverRegistrationScreen = () => {
       router.replace('/(driver)/(tabs)' as any);
     } catch (e: any) {
       Alert.alert('خطأ', e?.response?.data?.message || 'فشل التسجيل. تأكد من البيانات.');
+      shake();
+    } finally {
+      setLoading(false);
     }
   };
 
   // ── محتوى النموذج المشترك ────────────────────────────────────────────────
   const FormContent = (
-    <>
+    <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
       {/* المعلومات الأساسية */}
       <View style={styles.formSection}>
         <AmmarliInput label="الاسم الكامل"        placeholder="أدخل اسمك الكامل"            iconName="person-outline"      value={fullName}  onChangeText={setFullName} />
@@ -157,13 +174,13 @@ const DriverRegistrationScreen = () => {
       <View style={styles.row}>
         <VehicleCard
           title="توصيل عبوات"
-          image={require('../../assets/images/bottled_icon.png')}
+          iconName="bottle-wine-outline"
           active={vehicleType === 'bottled'}
           onPress={() => setVehicleType('bottled')}
         />
         <VehicleCard
           title="شاحنة صهريج"
-          image={require('../../assets/images/traker.png')}
+          iconName="truck-outline"
           active={vehicleType === 'tanker'}
           onPress={() => setVehicleType('tanker')}
         />
@@ -213,19 +230,19 @@ const DriverRegistrationScreen = () => {
           <View style={styles.waterTypeRow}>
             <TypeChip
               label="مياه بناء"
-              imageSource={require('../../assets/images/ashghal-icon.png')}
+              iconName="dump-truck"
               active={waterType === 'construction'}
               onPress={() => setWaterType('construction')}
             />
             <TypeChip
               label="مياه آبار"
-              imageSource={require('../../assets/images/well-water-icon.png')}
+              iconName="water-well-outline"
               active={waterType === 'well'}
               onPress={() => setWaterType('well')}
             />
             <TypeChip
               label="الينابيع"
-              imageSource={require('../../assets/images/spring-water-icon.png')}
+              iconName="water"
               active={waterType === 'spring'}
               onPress={() => setWaterType('spring')}
             />
@@ -244,9 +261,20 @@ const DriverRegistrationScreen = () => {
       )}
 
       {/* زر الإنشاء */}
-      <TouchableOpacity style={styles.submitButton} activeOpacity={0.8} onPress={handleRegister}>
-        <Text style={styles.submitButtonText}>إنشاء حساب جديد</Text>
-        <Ionicons name='chevron-forward' size={24} color={COLORS.primary} />
+      <TouchableOpacity 
+        style={[styles.submitButton, loading && { opacity: 0.75 }]} 
+        activeOpacity={0.8} 
+        onPress={handleRegister}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color={COLORS.primary} size="small" />
+        ) : (
+          <>
+            <Text style={styles.submitButtonText}>إنشاء حساب جديد</Text>
+            <Ionicons name='arrow-back' size={22} color={COLORS.primary} style={{ marginStart: 12 }} />
+          </>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.footerLink} onPress={() => router.push('/(driver)/login')}>
@@ -255,7 +283,7 @@ const DriverRegistrationScreen = () => {
           <Text style={styles.footerBold}>تسجيل الدخول</Text>
         </Text>
       </TouchableOpacity>
-    </>
+    </Animated.View>
   );
 
   return (
@@ -263,11 +291,15 @@ const DriverRegistrationScreen = () => {
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} translucent={false} />
 
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.logoContainer, { marginTop: insets.top > 0 ? insets.top : 20 }]}>
+        <Text style={styles.logoText}>AMMARLI</Text>
+      </View>
+
+      <View style={styles.headerRow}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name='chevron-forward' size={28} color={COLORS.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>انضم إلينا كسائق</Text>
+        <Text style={styles.headerTitle}>إنشاء حساب سائق</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -290,12 +322,16 @@ const CARD_W = (width - 65) / 2;
 
 const styles = StyleSheet.create({
   container:    { flex: 1, backgroundColor: COLORS.white },
-  header:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, height: 60 },
-  headerTitle:  { fontSize: 18, fontWeight: '800', color: COLORS.primary },
+  
+  logoContainer: { alignItems: 'center', marginBottom: 20 },
+  logoText: { fontSize: 18, fontFamily: 'Cairo-Bold', color: COLORS.primary, letterSpacing: 4 },
+
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 10 },
+  headerTitle:  { fontSize: 20, fontWeight: '800', color: COLORS.primary },
   backButton:   { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
   scrollContent: { paddingHorizontal: 25, paddingTop: 10 },
   formSection:  { marginBottom: 10 },
-  sectionLabel: { fontSize: 15, fontWeight: '800', color: COLORS.primary, marginBottom: 12, textAlign: 'right', marginTop: 15 },
+  sectionLabel: { fontSize: 15, fontWeight: '800', color: COLORS.primary, marginBottom: 12, textAlign: 'left', marginTop: 15 },
 
   // Vehicle cards
   row:                  { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
@@ -307,7 +343,7 @@ const styles = StyleSheet.create({
 
   // Dynamic section
   dynamicSection: { marginTop: 5, marginBottom: 5 },
-  selectedCount:  { fontSize: 12, fontWeight: '700', color: COLORS.secondary, textAlign: 'right', marginBottom: 10, marginTop: -8 },
+  selectedCount:  { fontSize: 12, fontWeight: '700', color: COLORS.secondary, textAlign: 'left', marginBottom: 10, marginTop: -8 },
 
   // Brand grid — 3 في الصف
   brandGrid: {

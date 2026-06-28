@@ -14,8 +14,17 @@ export type OrderStatus =
   | 'arrived'
   | 'delivering'
   | 'delivered'
+  | 'completed'
   | 'cancelled'
   | 'scheduled';
+
+export interface DriverInfo {
+  name: string;
+  phone: string;
+  plate?: string;
+  rating?: string;
+  avatarUrl?: string;
+}
 
 export interface Order {
   id: string | number;
@@ -31,9 +40,11 @@ export interface Order {
   schedulingInfo?: { date: string; time: string };
   items?: Array<{ brand: string; size: string; qty: number; unitPrice: number }>;
   cancelReason?: string;
+  /** Populated by socket event when a driver accepts the order */
+  driverInfo?: DriverInfo;
 }
 
-export interface DriverInfo {
+export interface ScheduledDriverInfo {
   name: string;
   rating: string;
   image: string;
@@ -45,8 +56,8 @@ export interface ScheduledOrder {
   status: 'pending' | 'accepted';
   title: string;
   schedule: string;
-  iconUri: string;
-  driver?: DriverInfo;
+  iconName: any;
+  driver?: ScheduledDriverInfo;
 }
 
 export interface Notification {
@@ -77,6 +88,7 @@ interface CustomerState {
   scheduledOrders: ScheduledOrder[];
   draftOrder: DraftOrder;
   favorites: Order[];
+  promos: any[];
   notifications: Notification[];
   userLocation: { latitude: number; longitude: number; address?: string } | null;
   driverLocation: { latitude: number; longitude: number } | null;
@@ -84,13 +96,12 @@ interface CustomerState {
   // ── Order actions ───────────────────────────────────────────────────────────
   setUserLocation: (location: { latitude: number; longitude: number; address?: string } | null) => void;
   setDriverLocation: (location: { latitude: number; longitude: number } | null) => void;
-  createOrder: (order: Order) => void;
+  createOrder: (order: Order) => Promise<void>;
   updateOrder: (update: Partial<Order>) => void;
   cancelOrder: (reason?: string) => void;
   completeOrder: () => void;
   scheduleOrder: (order: Order, date: string, time: string) => void;
-  addScheduledOrder: (order: ScheduledOrder) => void;
-  acceptScheduledOrder: (id: string, driver: DriverInfo) => void;
+  acceptScheduledOrder: (id: string, driver: ScheduledDriverInfo) => void;
 
   // ── Draft order actions ─────────────────────────────────────────────────────
   updateDraftOrder: (draft: Partial<DraftOrder>) => void;
@@ -108,6 +119,8 @@ interface CustomerState {
   // ── Network actions ─────────────────────────────────────────────────────────
   fetchActiveOrder: () => Promise<void>;
   fetchPastOrders: () => Promise<void>;
+  fetchScheduledOrders: () => Promise<void>;
+  fetchPromos: () => Promise<void>;
   handleSocketOrderUpdate: (payload: any) => void;
 }
 
@@ -127,26 +140,11 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
   scheduledOrders: [],
   draftOrder: INITIAL_DRAFT,
   favorites: [],
+  promos: [],
   userLocation: null,
   driverLocation: null,
-  notifications: [
-    {
-      id: 'schedule-acc-1',
-      title: 'تم تأكيد موعدك المجدول',
-      description: 'السائق أحمد علي أكد استلام طلبك ليوم غد الساعة 10:30 صباحاً. يمكنك التواصل معه الآن.',
-      time: 'منذ دقيقتين',
-      type: 'schedule',
-      isRead: false,
-    },
-    {
-      id: 'welcome-1',
-      title: 'مرحباً بك في عمارلي!',
-      description: 'اطلب المياه النقية وتوصل إلى بابك في دقائق.',
-      time: 'الآن',
-      type: 'promo',
-      isRead: false,
-    },
-  ],
+  notifications: [],
+  // NOTE: Real notifications are pushed via socket / backend FCM push
 
   // ── Order actions ───────────────────────────────────────────────────────────
   setUserLocation: (location) => set({ userLocation: location }),
@@ -178,24 +176,38 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
 
   handleSocketOrderUpdate: (payload: any) => {
     if (!payload) return;
+    const existing = useCustomerStore.getState().activeOrder;
+
+    // Build driverInfo from the socket payload if a driver is assigned
+    const driverInfo: DriverInfo | undefined = payload.driver
+      ? {
+          name:      `${payload.driver.firstName ?? ''} ${payload.driver.lastName ?? ''}`.trim() || payload.driver.name || 'السائق',
+          phone:     payload.driver.phone ?? '',
+          plate:     payload.driver.truckPlate ?? payload.driver.plate,
+          rating:    payload.driver.rating?.toString(),
+          avatarUrl: payload.driver.avatarUrl,
+        }
+      : existing?.driverInfo; // keep previous driverInfo if not re-sent
+
     const mappedOrder: Order = {
-      id: payload.id,
-      type: payload.type === 'TANKER' ? 'Tanker' : 'Bottled',
-      status: payload.status.toLowerCase() as OrderStatus,
-      quantity: payload.quantity?.toString(),
-      price: payload.totalPrice || payload.subtotal,
+      id:           payload.id,
+      type:         payload.type === 'TANKER' ? 'Tanker' : 'Bottled',
+      status:       payload.status.toLowerCase() as OrderStatus,
+      quantity:     payload.quantity?.toString(),
+      price:        payload.totalPrice || payload.subtotal,
       locationName: payload.deliveryAddress,
-      location: { latitude: payload.pickupLat, longitude: payload.pickupLng },
-      waterType: payload.tankerDetails?.waterType,
-      items: payload.bottledItems,
+      location:     { latitude: payload.pickupLat, longitude: payload.pickupLng },
+      waterType:    payload.tankerDetails?.waterType,
+      items:        payload.bottledItems,
+      driverInfo,
     };
-    
+
     set({ activeOrder: mappedOrder });
   },
 
   fetchPastOrders: async () => {
     try {
-      const { data } = await api.get('/requests?limit=50');
+      const { data } = await api.get('/requests?limit=50&isScheduled=false');
       if (data && data.data) {
         const past = data.data.map((r: any): Order => ({
           id: r.id,
@@ -209,12 +221,46 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
           items: r.bottledItems,
           cancelReason: r.cancelReason,
           orderTime: r.createdAt ? new Date(r.createdAt).toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', month: 'short', day: '2-digit' }) : undefined,
-          schedulingInfo: r.isScheduled ? { date: r.scheduledDate, time: r.scheduledTime } : undefined,
         }));
         set({ pastOrders: past });
       }
     } catch (e) {
       console.log('Failed to fetch past orders:', e);
+    }
+  },
+
+  fetchScheduledOrders: async () => {
+    try {
+      const { data } = await api.get('/requests?limit=50&isScheduled=true');
+      if (data && data.data) {
+        const scheduled = data.data.map((r: any): ScheduledOrder => ({
+          id: r.id,
+          status: r.status.toLowerCase() === 'scheduled' ? 'pending' : r.status.toLowerCase() as any,
+          title: r.type === 'TANKER' ? 'صهريج مياه' : 'مياه معبأة',
+          schedule: `(${r.scheduledDate} | ${r.scheduledTime})`,
+          iconName: r.type === 'TANKER' ? 'truck-outline' : 'bottle-wine-outline',
+          driver: r.driver ? {
+            name: `${r.driver.firstName} ${r.driver.lastName}`,
+            rating: '4.8',
+            image: r.driver.avatarUrl || '',
+            phone: r.driver.phone || ''
+          } : undefined
+        }));
+        set({ scheduledOrders: scheduled });
+      }
+    } catch (e) {
+      console.log('Failed to fetch scheduled orders:', e);
+    }
+  },
+  
+  fetchPromos: async () => {
+    try {
+      const { data } = await api.get('/promos');
+      if (data) {
+        set({ promos: data });
+      }
+    } catch (e) {
+      console.log('Failed to fetch promos:', e);
     }
   },
   
@@ -283,28 +329,29 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
 
   scheduleOrder: async (order, date, time) => {
     try {
-      await api.post('/requests', {
+      const isTanker = order.type === 'Tanker' || order.type === 'Well' || order.type === 'Spring' || order.type === 'Ashghal';
+      const payload = {
         pickupLat: order.location?.latitude || 0,
         pickupLng: order.location?.longitude || 0,
-        type: order.type === 'Tanker' ? 'TANKER' : 'BOTTLED',
+        deliveryAddress: order.locationName,
+        quantity: isTanker ? 1 : parseInt(order.quantity || '1', 10),
+        type: isTanker ? 'TANKER' : 'BOTTLED',
+        tankerDetails: isTanker ? { waterType: order.waterType || order.type, volume: parseInt(order.quantity || '3000', 10) } : undefined,
+        bottledItems: !isTanker ? order.items : undefined,
+        subtotal: order.price,
+        totalPrice: order.price,
         isScheduled: true,
         scheduledDate: date,
         scheduledTime: time,
-      });
-      set((s) => ({
-        pastOrders: [
-          { ...order, status: 'scheduled', schedulingInfo: { date, time } },
-          ...s.pastOrders,
-        ],
-      }));
+      };
+      await api.post('/requests', payload);
+      // Refresh scheduled orders from backend
+      get().fetchScheduledOrders();
     } catch (e) {
       console.error('Failed to schedule order:', e);
       throw e;
     }
   },
-
-  addScheduledOrder: (order) =>
-    set((s) => ({ scheduledOrders: [order, ...s.scheduledOrders] })),
 
   acceptScheduledOrder: async (id, driver) => {
     // Real implementation would notify backend driver acceptance

@@ -23,6 +23,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -46,7 +47,7 @@ interface RoleDef {
   id: SelectedRole;
   titleAr: string;
   descAr: string;
-  imageSource: any;
+  iconName: any;
   gradientColors: readonly [string, string, ...string[]];
   textColor: string;
   descColor: string;
@@ -58,7 +59,7 @@ const ROLES: RoleDef[] = [
     id: 'CUSTOMER',
     titleAr: 'اطلب الآن',
     descAr: 'مياه نقية تصلك بضغطة زر',
-    imageSource: require('../assets/images/bottled_icon.png'),
+    iconName: 'bottle-wine-outline',
     gradientColors: ['#FFD700', '#DAA520'],
     textColor: NAVY,
     descColor: 'rgba(0,33,71,0.7)',
@@ -68,7 +69,7 @@ const ROLES: RoleDef[] = [
     id: 'DRIVER',
     titleAr: 'انضم كشريك',
     descAr: 'كن جزءاً من فريق التوصيل المحترف',
-    imageSource: { uri: 'https://img.icons8.com/3d-fluency/188/truck.png' },
+    iconName: 'truck-outline',
     gradientColors: ['#002147', '#001530'],
     textColor: WHITE,
     descColor: 'rgba(255,255,255,0.7)',
@@ -195,10 +196,10 @@ export default function RoleSelectionScreen() {
 
                     {/* Image box — on the right */}
                     <View style={[styles.imageBox, role.imageBoxStyle]}>
-                      <Image
-                        source={role.imageSource}
-                        style={styles.threeDImage}
-                        resizeMode="contain"
+                      <MaterialCommunityIcons
+                        name={role.iconName}
+                        size={48}
+                        color={role.textColor}
                       />
                     </View>
 
@@ -304,13 +305,13 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontFamily: 'Cairo-Bold',
     marginBottom: 4,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   roleSubTitle: {
     fontSize: 13,
     fontFamily: 'Cairo-Regular',
     lineHeight: 20,
-    textAlign: 'right',
+    textAlign: 'left',
   },
 
   // Image box (glassmorphism on driver card)

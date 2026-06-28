@@ -7,7 +7,7 @@ export const Polyline = (props: any) => null;
 export const CachedUrlTile = (props: any) => null;
 export const Circle = (props: any) => null;
 
-const MapView = forwardRef(({ children, initialRegion, region, style, onRegionChangeComplete, showsUserLocation, onRegionChange }: any, ref) => {
+const MapView = forwardRef(({ children, initialRegion, region, style, onRegionChangeComplete, showsUserLocation, onRegionChange, pointerEvents }: any, ref) => {
   const webViewRef = useRef<WebView>(null);
 
   useImperativeHandle(ref, () => ({
@@ -212,7 +212,7 @@ const MapView = forwardRef(({ children, initialRegion, region, style, onRegionCh
   }
 
   return (
-    <View style={style}>
+    <View style={style} pointerEvents={pointerEvents}>
       <WebView
         ref={webViewRef}
         originWhitelist={['*']}
@@ -236,3 +236,4 @@ const styles = StyleSheet.create({
 });
 
 export default MapView;
+MapView.displayName = 'MapView';

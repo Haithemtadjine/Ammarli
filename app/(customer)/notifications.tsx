@@ -88,6 +88,7 @@ export default function NotificationsScreen() {
       </View>
     </TouchableOpacity>
   ));
+  NotificationCard.displayName = 'NotificationCard';
 
   return (
     <ScreenContainer style={styles.container}>

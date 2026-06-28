@@ -34,13 +34,15 @@ export default function OrderTrackingScreen() {
   const insets = useSafeAreaInsets();
   const { userLocation, driverLocation, setDriverLocation, activeOrder } = useCustomerStore();
 
-  const driverName = "خالد";
-  const eta = "25 دقيقة";
-  const phoneNumber = "+213555000000";
-  const truckPlate = "سكانيا 15 ل";
+  // Real driver info — populated when socket fires request_accepted
+  const driverInfo  = activeOrder?.driverInfo;
+  const driverName  = driverInfo?.name  ?? 'جاري البحث...';
+  const phoneNumber = driverInfo?.phone  ?? '';
+  const truckPlate  = driverInfo?.plate  ?? '---';
+  const driverRating = driverInfo?.rating ?? '---';
 
   const handleCallPress = () => {
-    Linking.openURL(`tel:${phoneNumber}`);
+    if (phoneNumber) Linking.openURL(`tel:${phoneNumber}`);
   };
 
   const handleCancelOrder = () => {
@@ -107,7 +109,7 @@ export default function OrderTrackingScreen() {
         {/* ETA Badge */}
         <View style={styles.etaContainer}>
           <View style={styles.etaCard}>
-            <Text style={styles.etaText}>يصل خلال {eta}</Text>
+            <Text style={styles.etaText}>السائق في الطريق</Text>
             <View style={styles.etaIconCircle}>
               <MaterialCommunityIcons name="truck-delivery" size={24} color={COLORS.primary} />
             </View>
@@ -164,16 +166,19 @@ export default function OrderTrackingScreen() {
           <View style={styles.driverInfo}>
             <Text style={styles.driverName}>{driverName}</Text>
             <View style={styles.ratingRow}>
-              <Text style={styles.ratingText}>4.9</Text>
+              <Text style={styles.ratingText}>{driverRating}</Text>
               <Ionicons name="star" size={14} color={COLORS.secondary} />
             </View>
             <Text style={styles.plateText}>رقم اللوحة: {truckPlate}</Text>
           </View>
           
-          <Image 
-            source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80' }} 
-            style={styles.driverAvatar}
-          />
+          {driverInfo?.avatarUrl ? (
+            <Image source={{ uri: driverInfo.avatarUrl }} style={styles.driverAvatar} />
+          ) : (
+            <View style={[styles.driverAvatar, { backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' }]}>
+              <Ionicons name="person" size={30} color="#fff" />
+            </View>
+          )}
         </View>
 
         {/* Cancel Button */}

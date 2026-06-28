@@ -177,7 +177,17 @@ const InventoryListCard = () => {
 export default function DriverDashboardScreen() {
   const insets = useSafeAreaInsets();
   const router  = useRouter();
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline, setIsOnline] = useState(false);
+  const handleOnlineToggle = async (value: boolean) => {
+    setIsOnline(value);
+    if (value) {
+      useDriverStore.getState().setDriverStatus('AVAILABLE');
+      await useDriverStore.getState().startLocationTracking();
+    } else {
+      useDriverStore.getState().setDriverStatus('OFFLINE');
+      useDriverStore.getState().stopLocationTracking();
+    }
+  };
   const [showOrder, setShowOrder] = useState(false);
 
   // تشغيل صوت تنبيه + اهتزاز متكرر طوال مدة ظهور بطاقة الطلبية
@@ -203,6 +213,11 @@ export default function DriverDashboardScreen() {
       appState.current = next;
     });
     return () => sub.remove();
+  }, []);
+
+  // جلب بيانات السائق من الباكند عند أول تحميل
+  useEffect(() => {
+    useDriverStore.getState().fetchDriverProfile();
   }, []);
 
   // قراءة بيانات السائق من Store مباشرة
@@ -314,7 +329,7 @@ export default function DriverDashboardScreen() {
       qty: item.detail,
       unit: '',
       price: item.price,
-      image: item.icon === 'droplet' ? 'https://img.icons8.com/3d-fluency/94/water-bottle.png' : null
+      image: null
     })) || [];
 
     router.push({
@@ -432,7 +447,7 @@ export default function DriverDashboardScreen() {
           </TouchableOpacity>
           <View style={styles.toggleContainer}>
              <Text style={[styles.statusText, { color: isOnline ? COLORS.success : COLORS.textSecondary }]}>{isOnline ? 'متصل' : 'غير متصل'}</Text>
-             <Switch value={isOnline} onValueChange={setIsOnline} trackColor={{ false: '#CBD5E1', true: COLORS.success }} thumbColor={COLORS.white} />
+             <Switch value={isOnline} onValueChange={handleOnlineToggle} trackColor={{ false: '#CBD5E1', true: COLORS.success }} thumbColor={COLORS.white} />
           </View>
         </View>
         <View style={styles.userSection}>
@@ -479,10 +494,10 @@ const styles = StyleSheet.create({
   avatar: { width: 50, height: 50, borderRadius: 16, borderWidth: 2, borderColor: COLORS.secondary },
   statsRow: { flexDirection: 'row', gap: 15, padding: 20 },
   statCard: { flex: 1, padding: 20, borderRadius: 24, elevation: 4 },
-  statLabelLight: { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: '700', textAlign: 'right' },
-  statValueWhite: { fontSize: 22, fontWeight: '900', color: COLORS.white, textAlign: 'right', marginTop: 5 },
-  statLabelDark: { fontSize: 12, color: 'rgba(0,33,71,0.6)', fontWeight: '800', textAlign: 'right' },
-  statValueDark: { fontSize: 22, fontWeight: '900', color: COLORS.primary, textAlign: 'right', marginTop: 5 },
+  statLabelLight: { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: '700', textAlign: 'left' },
+  statValueWhite: { fontSize: 22, fontWeight: '900', color: COLORS.white, textAlign: 'left', marginTop: 5 },
+  statLabelDark: { fontSize: 12, color: 'rgba(0,33,71,0.6)', fontWeight: '800', textAlign: 'left' },
+  statValueDark: { fontSize: 22, fontWeight: '900', color: COLORS.primary, textAlign: 'left', marginTop: 5 },
   
   // أنماط خاصة بالصهريج
   tankCard: { marginHorizontal: 20, marginBottom: 20, backgroundColor: COLORS.white, borderRadius: 32, padding: 25, alignItems: 'center', elevation: 2 },
@@ -500,7 +515,7 @@ const styles = StyleSheet.create({
   // أنماط خاصة بالجرد والقوارير
   inventoryCard: { marginHorizontal: 20, marginBottom: 20, backgroundColor: COLORS.white, borderRadius: 32, padding: 24, elevation: 2 },
   inventoryHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  inventoryTitle: { fontSize: 20, fontWeight: '900', color: COLORS.primary, textAlign: 'right' },
+  inventoryTitle: { fontSize: 20, fontWeight: '900', color: COLORS.primary, textAlign: 'left' },
   badge: { backgroundColor: '#E0F2FE', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
   badgeText: { fontSize: 10, fontWeight: '900', color: COLORS.primary },
   brandScroll: { flexDirection: 'row', gap: 12, marginBottom: 25 },
@@ -509,7 +524,7 @@ const styles = StyleSheet.create({
   brandCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', marginBottom: 10, elevation: 1 },
   brandName: { fontSize: 14, fontWeight: '900', color: COLORS.primary },
   brandCount: { fontSize: 10, color: COLORS.textSecondary, fontWeight: '700' },
-  subTitle: { fontSize: 12, fontWeight: '900', color: COLORS.textSecondary, textAlign: 'right', marginBottom: 15 },
+  subTitle: { fontSize: 12, fontWeight: '900', color: COLORS.textSecondary, textAlign: 'left', marginBottom: 15 },
   stockGrid: { flexDirection: 'row', gap: 10, marginBottom: 25 },
   stockBox: { flex: 1, height: 110, borderRadius: 20, alignItems: 'center', justifyContent: 'center', padding: 10 },
   boxLabel: { fontSize: 12, fontWeight: '900', marginBottom: 5 },
@@ -526,7 +541,7 @@ const styles = StyleSheet.create({
   
   // أنماط مشتركة أسفل الشاشة
   orderSection: { paddingHorizontal: 20, marginTop: 10 },
-  sectionTitle: { fontSize: 18, fontWeight: '900', color: COLORS.primary, textAlign: 'right', marginBottom: 15 },
+  sectionTitle: { fontSize: 18, fontWeight: '900', color: COLORS.primary, textAlign: 'left', marginBottom: 15 },
   emptyOrder: { height: 100, backgroundColor: COLORS.white, borderRadius: 24, justifyContent: 'center', alignItems: 'center', borderStyle: 'dashed', borderWidth: 2, borderColor: '#E2E8F0' },
   emptyText: { color: COLORS.textSecondary, fontWeight: '700', fontFamily: 'Cairo-SemiBold' },
 

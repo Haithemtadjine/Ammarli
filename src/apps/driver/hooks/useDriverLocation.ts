@@ -75,8 +75,9 @@ export function useDriverLocation(): DriverLocationState {
             
             import('../../../services/socket').then(({ socketService }) => {
               if (!socketService.socket) {
-                // If not connected, connect
-                const driverId = useDriverStore.getState().registeredDriver?.id || 'default_driver';
+                // If not connected, reconnect using the auth user id
+                const { useAuthStore } = require('../../../store/useAuthStore');
+                const driverId = useAuthStore.getState().userProfile?.id ?? 'unknown';
                 socketService.connectAsDriver(driverId).then(() => {
                   socketService.emitLocationUpdate(lat, lng);
                 });

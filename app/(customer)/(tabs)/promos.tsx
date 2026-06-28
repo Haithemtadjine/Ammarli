@@ -1,5 +1,5 @@
 import ScreenContainer from '../../../components/ScreenContainer';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useCustomerStore } from '../../../src/store/useCustomerStore';
 
 const THEME_NAVY = '#002147';
 const THEME_YELLOW = '#FFCC00';
@@ -22,26 +23,11 @@ export default function PromotionsScreen() {
   const insets = useSafeAreaInsets();
   const [promoCode, setPromoCode] = useState('');
 
-  const offers = [
-    {
-      id: 1,
-      title: 'خصم 20% على طلب مياه الينابيع التالي',
-      subtitle: 'صالح حتى نهاية الشهر',
-      icon: <Feather name="gift" color={THEME_YELLOW} size={28} />,
-    },
-    {
-      id: 2,
-      title: 'احصل على استرداد نقدي بقيمة 200 د.ج على الطلبات التي تزيد عن 1000 د.ج',
-      subtitle: 'يتم تطبيق الاسترداد النقدي على المحفظة',
-      icon: <Feather name="tag" color={THEME_YELLOW} size={28} />,
-    },
-    {
-      id: 3,
-      title: 'توصيل مجاني على زجاجات 5 جالون',
-      subtitle: 'يطبق تلقائياً عند الدفع',
-      icon: <Feather name="gift" color={THEME_YELLOW} size={28} />,
-    },
-  ];
+  const { promos, fetchPromos } = useCustomerStore();
+
+  useEffect(() => {
+    fetchPromos();
+  }, [fetchPromos]);
 
   const handleApplyPromo = () => {
     if (!promoCode.trim()) {
@@ -105,19 +91,19 @@ export default function PromotionsScreen() {
           {/* Offers List Section */}
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>العروض المتاحة</Text>
-            {offers.map((offer) => (
-              <View key={offer.id} style={styles.offerCard}>
+            {promos.map((offer, index) => (
+              <View key={offer.id || index} style={styles.offerCard}>
                 <TouchableOpacity style={styles.useButton} onPress={() => handleUseOffer(offer.title)}>
                   <Text style={styles.useButtonText}>استخدام</Text>
                 </TouchableOpacity>
                 
                 <View style={styles.offerInfo}>
                   <Text style={styles.offerTitle}>{offer.title}</Text>
-                  <Text style={styles.offerSubtitle}>{offer.subtitle}</Text>
+                  <Text style={styles.offerSubtitle}>{offer.description || offer.subtitle}</Text>
                 </View>
 
                 <View style={styles.iconContainer}>
-                  {offer.icon}
+                  <Feather name={offer.icon || 'gift'} color={THEME_YELLOW} size={28} />
                 </View>
               </View>
             ))}

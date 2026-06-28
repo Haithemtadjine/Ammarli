@@ -26,3 +26,4 @@ const styles = StyleSheet.create({
 });
 
 export default MapView;
+MapView.displayName = 'MapView';

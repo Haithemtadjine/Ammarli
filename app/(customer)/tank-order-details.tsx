@@ -21,6 +21,7 @@ import { useRouter, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useCustomerStore } from '../../src/store/useCustomerStore';
 import * as Haptics from 'expo-haptics';
 import ScreenContainer, { MIN_BOTTOM_INSET } from '../../components/ScreenContainer';
+import MapView, { Marker } from '../../components/Map';
 
 const { width } = Dimensions.get('window');
 
@@ -159,12 +160,34 @@ export default function TankDeliveryDetailsScreen() {
           {/* Map Section */}
           <Animated.View style={[styles.mapContainer, { transform: [{ translateX: shakeAnim }] }]}>
             <TouchableOpacity style={styles.mapPlaceholder} activeOpacity={0.9} onPress={() => router.push('/(customer)/location-picker')}>
-               <Image 
-                 source={{ uri: 'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/3.0588,36.7538,13/600x300?access_token=YOUR_TOKEN' }}
-                 style={StyleSheet.absoluteFillObject}
-                 resizeMode="cover"
-               />
-               <View style={styles.mapOverlay}>
+               {Platform.OS === 'web' ? (
+                 <Image 
+                   source={{ uri: 'https://placehold.co/600x300/EAECEE/002147?font=roboto&text=Map+Preview' }}
+                   style={StyleSheet.absoluteFillObject}
+                   resizeMode="cover"
+                 />
+               ) : (
+                 <MapView
+                   pointerEvents="none"
+                   style={StyleSheet.absoluteFillObject}
+                   initialRegion={{
+                     latitude: draftOrder.location?.latitude || userLocation?.latitude || 35.5557,
+                     longitude: draftOrder.location?.longitude || userLocation?.longitude || 6.1748,
+                     latitudeDelta: 0.01,
+                     longitudeDelta: 0.01,
+                   }}
+                   scrollEnabled={false}
+                   zoomEnabled={false}
+                 >
+                   <Marker 
+                     coordinate={{
+                       latitude: draftOrder.location?.latitude || userLocation?.latitude || 35.5557,
+                       longitude: draftOrder.location?.longitude || userLocation?.longitude || 6.1748,
+                     }} 
+                   />
+                 </MapView>
+               )}
+               <View style={styles.mapOverlay} pointerEvents="none">
                  <Ionicons name="location" size={40} color={COLORS.primaryBlue} />
                </View>
             </TouchableOpacity>
@@ -314,6 +337,7 @@ const LocationOption = React.memo(({ label, iconName, selected, onPress }: any) 
     <Text style={[styles.optionLabel, selected && styles.selectedOptionText]}>{label}</Text>
   </TouchableOpacity>
 ));
+LocationOption.displayName = 'LocationOption';
 
 const styles = StyleSheet.create({
   // safeArea لم تعد ضرورية — ScreenContainer يتعامل مع flex:1 والخلفية
@@ -342,7 +366,9 @@ const styles = StyleSheet.create({
     // paddingBottom is set dynamically via inline style using insets.bottom
   },
   mapContainer: {
-    padding: 15,
+    paddingHorizontal: 20,
+    paddingTop: 15,
+    paddingBottom: 10,
   },
   mapPlaceholder: {
     height: 180,
@@ -361,7 +387,7 @@ const styles = StyleSheet.create({
   locationCard: {
     backgroundColor: COLORS.white,
     marginTop: -25,
-    marginHorizontal: 15,
+    marginHorizontal: 10,
     borderRadius: 12,
     padding: 15,
     flexDirection: 'row-reverse',

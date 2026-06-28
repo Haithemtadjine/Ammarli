@@ -12,7 +12,7 @@ import {
   Modal,
   ActivityIndicator
 } from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../src/store/useAuthStore';
 import { useCustomerStore } from '../../../src/store/useCustomerStore';
@@ -101,14 +101,14 @@ const AmmerliHomeScreen = () => {
     }
   };
 
-  const WaterCategory = ({ title, subtitle, imageSource, onPress }: any) => (
+  const WaterCategory = ({ title, subtitle, iconName, iconColor, iconBg, onPress }: any) => (
     <TouchableOpacity 
       style={styles.categoryCard} 
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <View style={styles.imagePlaceholder}>
-         <Image source={imageSource} style={styles.categoryImage} resizeMode="contain" />
+      <View style={[styles.imagePlaceholder, { backgroundColor: iconBg, borderRadius: 20 }]}>
+         <MaterialCommunityIcons name={iconName} size={42} color={iconColor} />
       </View>
       <Text style={styles.categoryTitle}>{title}</Text>
       <Text style={styles.categorySubtitle}>{subtitle}</Text>
@@ -200,25 +200,33 @@ const AmmerliHomeScreen = () => {
             <WaterCategory 
               title="مياه الآبار" 
               subtitle="استخراج عميق" 
-              imageSource={{ uri: 'https://img.icons8.com/3d-fluency/188/well.png' }} 
+              iconName="water-well-outline"
+              iconColor="#2563EB"
+              iconBg="#EFF6FF"
               onPress={() => handleServicePress('Well')}
             />
             <WaterCategory 
               title="مياه الينابيع" 
               subtitle="مصدر طبيعي" 
-              imageSource={require('../../../assets/images/spring-water-icon.png')} 
+              iconName="water"
+              iconColor="#0284C7"
+              iconBg="#F0F9FF"
               onPress={() => handleServicePress('Spring')}
             />
             <WaterCategory 
               title="مياه معبأة" 
               subtitle="عبوات مميزة" 
-              imageSource={require('../../../assets/images/bottled_icon.png')} 
+              iconName="bottle-wine-outline"
+              iconColor="#16A34A"
+              iconBg="#F0FDF4"
               onPress={() => handleServicePress('Bottled')}
             />
             <WaterCategory 
               title="أشغال" 
               subtitle="مياه غير صالحة للشرب" 
-              imageSource={{ uri: 'https://img.icons8.com/3d-fluency/188/worker-male.png' }} 
+              iconName="dump-truck"
+              iconColor="#D97706"
+              iconBg="#FFF7ED"
               onPress={() => handleServicePress('Ashghal')}
             />
           </View>

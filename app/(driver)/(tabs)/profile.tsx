@@ -35,6 +35,9 @@ const DriverProfileScreen = () => {
     : registeredDriver?.waterType === 'construction' ? 'سائق مياه البناء'
     : 'سائق صهاريج متميز';
 
+  const driverRating = useDriverStore(s => s.driverRating);
+  const userProfile = useAuthStore(s => s.userProfile);
+
   const handleLogout = async () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     await logout();
@@ -58,10 +61,16 @@ const DriverProfileScreen = () => {
         <View style={styles.profileHero}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatarBorder}>
-              <Image 
-                source={{ uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300' }} 
-                style={styles.avatar}
-              />
+              {userProfile?.avatarUrl ? (
+                <Image 
+                  source={{ uri: userProfile.avatarUrl }} 
+                  style={styles.avatar}
+                />
+              ) : (
+                <View style={[styles.avatar, { backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' }]}>
+                  <MaterialCommunityIcons name="account" size={50} color={COLORS.textSecondary} />
+                </View>
+              )}
             </View>
             <View style={styles.verifiedBadge}>
               <MaterialCommunityIcons name="check-decagram" size={20} color={COLORS.primary} />
@@ -72,7 +81,7 @@ const DriverProfileScreen = () => {
           <View style={styles.ratingRow}>
             <Text style={styles.statusText}>موثق</Text>
             <View style={styles.dot} />
-            <Text style={styles.ratingText}>4.9</Text>
+            <Text style={styles.ratingText}>{driverRating}</Text>
             <Ionicons name="star" size={16} color={COLORS.secondary} style={{marginRight: 4}} />
           </View>
           <Text style={styles.userRole}>{driverRole}</Text>

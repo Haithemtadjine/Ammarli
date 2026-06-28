@@ -3,8 +3,10 @@
  * Responsibilities:
  *  1. Load Cairo font (Arabic + Latin support)
  *  2. Initialize i18n (Arabic default, RTL)
- *  3. Hide native splash screen when fonts are ready
- *  4. Provide GestureHandler + SafeArea context to the whole app
+ *  3. Hydrate auth state from AsyncStorage BEFORE routing
+ *  4. Register Expo Push Token with backend after hydration
+ *  5. Hide native splash screen when fonts are ready
+ *  6. Provide GestureHandler + SafeArea context to the whole app
  */
 
 import {
@@ -15,12 +17,13 @@ import {
 } from '@expo-google-fonts/cairo';
 import { SplashScreen, Stack, router } from 'expo-router';
 import * as Notifications from 'expo-notifications';
-import { setupPushNotifications } from '../src/services/notificationService';
-import { useEffect, useState } from 'react';
+import { setupPushNotifications, registerPushTokenWithBackend } from '../src/services/notificationService';
+import { useEffect, useState, useRef } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { I18nManager, Platform, View, LogBox } from 'react-native';
+import { useAuthStore } from '../src/store/useAuthStore';
 import NewOrderCard from '../components/NewOrderCard';
 
 // Ignore the Expo Go warning about remote push notifications since we only use local ones in dev
@@ -77,6 +80,7 @@ export default function RootLayout() {
   });
 
   const [incomingOrderPayload, setIncomingOrderPayload] = useState<any>(null);
+  const hydratedRef = useRef(false);
 
   useEffect(() => {
     // ── Notifee Wake-up & Foreground Listeners ─────────────────────────────────
@@ -113,6 +117,17 @@ export default function RootLayout() {
     // إعداد قنوات الإشعارات والصلاحيات
     setupPushNotifications();
 
+    // ── Hydrate auth state from storage before any routing ─────────────────
+    if (!hydratedRef.current) {
+      hydratedRef.current = true;
+      useAuthStore.getState().hydrate().then((role) => {
+        // After hydration, register push token if user is already logged in
+        if (role) {
+          registerPushTokenWithBackend();
+        }
+      });
+    }
+
     // الاستماع للتفاعل مع إشعارات النظام
     const subscription = Notifications.addNotificationResponseReceivedListener(
       (response: Notifications.NotificationResponse) => {
@@ -138,7 +153,7 @@ export default function RootLayout() {
                   qty: 1,
                   unit: 'طلبية',
                   price: data.price ?? '2500',
-                  image: 'https://img.icons8.com/3d-fluency/94/water-bottle.png',
+                  image: null,
                 },
               ]),
             },

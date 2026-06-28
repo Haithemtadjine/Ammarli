@@ -12,6 +12,7 @@ import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useDriverStore } from '../../../src/store/useDriverStore';
+import { useEffect } from 'react';
 
 const COLORS = {
   primary:       '#003366',
@@ -40,35 +41,6 @@ interface OrderItem {
   price:    string;
   status:   TripStatus;
 }
-
-// ─── Dummy Data (كل الأنواع) ──────────────────────────────────────────────────
-
-const ALL_PREVIOUS: OrderItem[] = [
-  // قوارير
-  { id: 'b1', category: 'bottled',      title: '5 عبوات 1.5 لتر',       date: '23 OCT, 02:15 PM', customer: 'سارة خالد',   price: '75.00',  status: 'مكتمل' },
-  { id: 'b2', category: 'bottled',      title: '10 عبوات 5 لتر',         date: '22 OCT, 09:45 AM', customer: 'يوسف علي',    price: '85.50',  status: 'مكتمل' },
-  { id: 'b3', category: 'bottled',      title: '8 عبوات 1.5 لتر',        date: '20 OCT, 11:00 AM', customer: 'علي بن خالد', price: '60.00',  status: 'ملغي'  },
-  // ينابيع
-  { id: 's1', category: 'spring',       title: '3000 لتر مياه نبع',      date: '24 OCT, 10:30 AM', customer: 'أحمد محمد',   price: '120.00', status: 'مكتمل' },
-  { id: 's2', category: 'spring',       title: '2000 لتر مياه نبع',      date: '21 OCT, 04:20 PM', customer: 'فاطمة حسن',   price: '95.00',  status: 'مكتمل' },
-  // آبار
-  { id: 'w1', category: 'well',         title: '4000 لتر مياه آبار',     date: '24 OCT, 08:00 AM', customer: 'كريم بلال',   price: '80.00',  status: 'مكتمل' },
-  { id: 'w2', category: 'well',         title: '3500 لتر مياه آبار',     date: '22 OCT, 01:30 PM', customer: 'نادية عمر',   price: '70.00',  status: 'ملغي'  },
-  // أشغال/بناء
-  { id: 'c1', category: 'construction', title: '5000 لتر مياه بناء',     date: '23 OCT, 07:00 AM', customer: 'مقاولة الشمس', price: '110.00', status: 'مكتمل' },
-  { id: 'c2', category: 'construction', title: '8000 لتر مياه أشغال',    date: '20 OCT, 06:00 AM', customer: 'إنجاز للبناء', price: '160.00', status: 'مكتمل' },
-];
-
-const ALL_SCHEDULED: OrderItem[] = [
-  // قوارير
-  { id: 'sb1', category: 'bottled',      title: '20 عبوة 5 لتر',          date: '29 OCT, 03:00 PM', customer: 'مدرسة النور',  price: '180.00', status: 'مجدول' },
-  // ينابيع
-  { id: 'ss1', category: 'spring',       title: '5000 لتر مياه نبع',      date: '28 OCT, 08:00 AM', customer: 'فندق الأطلس', price: '250.00', status: 'مجدول' },
-  // آبار
-  { id: 'sw1', category: 'well',         title: '6000 لتر مياه آبار',     date: '30 OCT, 09:00 AM', customer: 'ورشة المدينة', price: '150.00', status: 'مجدول' },
-  // أشغال
-  { id: 'sc1', category: 'construction', title: '10000 لتر مياه بناء',    date: '27 OCT, 06:30 AM', customer: 'شركة الأمل',  price: '300.00', status: 'مجدول' },
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -189,27 +161,28 @@ export default function DriverTripsScreen() {
 
   const category = resolveCategory(driverType, waterType);
 
-  // تصفية الرحلات حسب التخصص فقط
-  const pool     = activeTab === 'previous' ? ALL_PREVIOUS : ALL_SCHEDULED;
-  const filtered = category ? pool.filter(o => o.category === category) : [];
+  const fetchPastTrips = useDriverStore(s => s.fetchPastTrips);
+  
+  useEffect(() => {
+    fetchPastTrips();
+  }, [fetchPastTrips]);
 
   const pastTripsFromStore = useDriverStore(s => s.pastTrips);
   
-  let finalFiltered = filtered;
+  // تصفية الرحلات حسب التخصص فقط
+  // For scheduled we assume empty for now as backend doesn't support them fully yet
+  const mappedPastTrips = pastTripsFromStore.map(pt => ({
+    id: pt.id,
+    category: category || 'bottled', 
+    title: pt.orderSummary,
+    date: pt.date + ' ' + pt.time,
+    customer: pt.customerName,
+    price: pt.amount.toFixed(2),
+    status: pt.status === 'Completed' ? 'مكتمل' : 'ملغي',
+    cancelReason: pt.cancelReason
+  }));
   
-  if (activeTab === 'previous' && pastTripsFromStore.length > 0) {
-    const mappedPastTrips = pastTripsFromStore.map(pt => ({
-      id: pt.id,
-      category: category || 'bottled', 
-      title: pt.orderSummary,
-      date: pt.time, // Using time directly or combining with date
-      customer: pt.customerName,
-      price: pt.amount.toFixed(2),
-      status: pt.status === 'Completed' ? 'مكتمل' : 'ملغي',
-      cancelReason: pt.cancelReason
-    }));
-    finalFiltered = [ ...mappedPastTrips, ...filtered ] as any;
-  }
+  const finalFiltered = activeTab === 'previous' ? mappedPastTrips : [];
 
   // إجمالي الأرباح للرحلات المكتملة
   const totalEarned = finalFiltered
@@ -251,7 +224,7 @@ export default function DriverTripsScreen() {
       {/* Summary Row */}
       <View style={styles.summaryRow}>
         <View style={styles.summaryChip}>
-          <Text style={styles.summaryValue}>{filtered.length}</Text>
+          <Text style={styles.summaryValue}>{finalFiltered.length}</Text>
           <Text style={styles.summaryLabel}>رحلة</Text>
         </View>
         {activeTab === 'previous' && totalEarned > 0 && (

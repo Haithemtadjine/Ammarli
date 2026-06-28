@@ -11,7 +11,8 @@ import {
   Platform,
   KeyboardAvoidingView,
   Animated,
-  StatusBar
+  StatusBar,
+  Linking
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +22,7 @@ import { useCustomerStore } from '../../src/store/useCustomerStore';
 import * as Haptics from 'expo-haptics';
 import ErrorBoundary from '../../components/ErrorBoundary';
 import ScreenContainer, { MIN_BOTTOM_INSET } from '../../components/ScreenContainer';
+import MapView, { Marker } from '../../components/Map';
 
 const { width } = Dimensions.get('window');
 
@@ -214,12 +216,33 @@ export default function OrderDetailsScreen() {
           <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
             <TouchableOpacity style={styles.mapCard} activeOpacity={0.9} onPress={handleMapPress}>
               <View style={styles.mapImageContainer}>
-                <Image 
-                  source={{ uri: 'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/3.0588,36.7538,13/600x200?access_token=YOUR_TOKEN' }}
-                  style={styles.mapImage}
-                  resizeMode="cover"
-                />
-                <View style={styles.mapPinOverlay}>
+                {Platform.OS === 'web' ? (
+                  <Image 
+                    source={{ uri: 'https://placehold.co/600x200/EAECEE/002147?font=roboto&text=Map+Preview' }}
+                    style={styles.mapImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <MapView
+                    style={styles.mapImage}
+                    initialRegion={{
+                      latitude: draftOrder.location?.latitude || userLocation?.latitude || 35.5557,
+                      longitude: draftOrder.location?.longitude || userLocation?.longitude || 6.1748,
+                      latitudeDelta: 0.01,
+                      longitudeDelta: 0.01,
+                    }}
+                    scrollEnabled={false}
+                    zoomEnabled={false}
+                  >
+                    <Marker 
+                      coordinate={{
+                        latitude: draftOrder.location?.latitude || userLocation?.latitude || 35.5557,
+                        longitude: draftOrder.location?.longitude || userLocation?.longitude || 6.1748,
+                      }} 
+                    />
+                  </MapView>
+                )}
+                <View style={styles.mapPinOverlay} pointerEvents="none">
                   <Ionicons name="location" size={40} color={COLORS.accentYellow} />
                 </View>
               </View>
@@ -316,12 +339,8 @@ const ProductCard = React.memo(({ label, subLabel, price, qty, onAdd, onSub }: a
           <Text style={styles.productLabel}>{label}</Text>
           <Text style={styles.productSubLabel}>{subLabel}</Text>
         </View>
-        <View style={styles.productImagePlaceholder}>
-           <Image 
-             source={require('../../assets/images/bottled_icon.png')} 
-             style={styles.productImage} 
-             resizeMode="contain"
-           />
+        <View style={[styles.productImagePlaceholder, { backgroundColor: '#F0FDF4', borderRadius: 12, justifyContent: 'center', alignItems: 'center' }]}>
+           <MaterialCommunityIcons name="bottle-wine-outline" size={32} color="#16A34A" />
         </View>
       </View>
     </View>
@@ -336,6 +355,7 @@ const ProductCard = React.memo(({ label, subLabel, price, qty, onAdd, onSub }: a
     </View>
   </View>
 ));
+ProductCard.displayName = 'ProductCard';
 
 const styles = StyleSheet.create({
   // safeArea لم تعد ضرورية — ScreenContainer يتعامل مع flex:1 والخلفية
@@ -390,7 +410,7 @@ const styles = StyleSheet.create({
   
   // Brands styles
   sectionTitle: { fontSize: 16, fontFamily: 'Cairo-Bold', color: COLORS.textDark, textAlign: 'left', marginHorizontal: 20, marginTop: 10, marginBottom: 15 },
-  brandScroll: { paddingHorizontal: 15, paddingBottom: 10, flexDirection: 'row-reverse' },
+  brandScroll: { paddingHorizontal: 20, paddingBottom: 10, flexDirection: 'row-reverse' },
   brandCard: {
     width: 100,
     height: 110,
@@ -410,7 +430,7 @@ const styles = StyleSheet.create({
   brandName: { fontSize: 14, fontFamily: 'Cairo-Bold', color: COLORS.textDark },
   
   // Sizes styles
-  sizesScroll: { paddingHorizontal: 15, paddingBottom: 20, flexDirection: 'row-reverse' },
+  sizesScroll: { paddingHorizontal: 20, paddingBottom: 20, flexDirection: 'row-reverse' },
   productCard: {
     width: 220,
     backgroundColor: COLORS.white,

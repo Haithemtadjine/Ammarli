@@ -79,10 +79,16 @@ export default function PersonalInfoScreen() {
           <View style={styles.photoSection}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatarBorder}>
-                <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300' }}
-                  style={styles.avatar}
-                />
+                {registeredDriver?.avatarUrl ? (
+                  <Image
+                    source={{ uri: registeredDriver.avatarUrl }}
+                    style={styles.avatar}
+                  />
+                ) : (
+                  <View style={[styles.avatar, { backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' }]}>
+                    <Ionicons name="person" size={60} color="#64748B" />
+                  </View>
+                )}
               </View>
               <TouchableOpacity style={styles.cameraBtn} activeOpacity={0.9}>
                 <Ionicons name="camera" size={20} color={COLORS.primary} />

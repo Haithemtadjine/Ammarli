@@ -7,6 +7,7 @@ import {
 import { MaterialCommunityIcons, Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { useDriverStore } from '../../../src/store/useDriverStore';
 
 const { width } = Dimensions.get('window');
 
@@ -29,11 +30,21 @@ const DriverEarningsScreen = () => {
     // منطق السحب هنا
   };
 
-  const weeklyData = [
-    { day: 'الأحد', value: 30 }, { day: 'السبت', value: 45 }, { day: 'الجمعة', value: 40 },
-    { day: 'الخميس', value: 95, active: true },
-    { day: 'الأربعاء', value: 65 }, { day: 'الثلاثاء', value: 35 }, { day: 'الإثنين', value: 20 },
-  ];
+  const { walletBalance, totalEarnings, completedTrips, driverRating, appCommission, weeklyStats, transactions } = useDriverStore();
+  
+  const currentDayIndex = new Date().getDay(); // 0 is Sunday, 1 is Monday
+  // In frontend we map Monday=0, Sunday=6
+  const normalizedDay = currentDayIndex === 0 ? 6 : currentDayIndex - 1;
+
+  const weeklyData = weeklyStats.map((item, idx) => {
+    // Find the max amount for the chart scale
+    const maxAmount = Math.max(...weeklyStats.map(s => s.amount), 1);
+    return {
+      day: item.day,
+      value: (item.amount / maxAmount) * 100, // percentage height
+      active: idx === normalizedDay
+    };
+  });
 
   return (
     <ScreenContainer backgroundColor="#FFF" statusBarStyle="dark-content" statusBarColor="#FFF">
@@ -58,7 +69,7 @@ const DriverEarningsScreen = () => {
         <View style={styles.balanceCard}>
            <View style={styles.balanceInfo}>
               <Text style={styles.balanceLabel}>الرصيد الحالي</Text>
-              <Text style={styles.balanceValue}>12,500 <Text style={styles.currency}>د.ج</Text></Text>
+              <Text style={styles.balanceValue}>{walletBalance.toLocaleString('ar-DZ')} <Text style={styles.currency}>د.ج</Text></Text>
            </View>
            <TouchableOpacity 
              style={styles.withdrawBtn} 
@@ -72,8 +83,8 @@ const DriverEarningsScreen = () => {
 
         {/* الإحصائيات السريعة */}
         <View style={styles.statsRow}>
-           <StatItem label="إجمالي الرحلات" value="45" icon="truck-delivery" isRating={false} />
-           <StatItem label="التقييم" value="4.9" icon="star" isRating={true} />
+           <StatItem label="إجمالي الرحلات" value={completedTrips.toString()} icon="truck-delivery" isRating={false} />
+           <StatItem label="التقييم" value={driverRating.toString()} icon="star" isRating={true} />
         </View>
 
         {/* بطاقة عمولة التطبيق (المديونية) */}
@@ -86,7 +97,7 @@ const DriverEarningsScreen = () => {
               <Text style={styles.debtSubLabel}>المبالغ المستحقة للبرنامج</Text>
            </View>
            <View style={styles.debtAmountContainer}>
-              <Text style={styles.debtValue}>1,200 د.ج</Text>
+              <Text style={styles.debtValue}>{appCommission.toLocaleString('ar-DZ')} د.ج</Text>
               <Text style={styles.debtStatus}>• مستحق الدفع</Text>
            </View>
         </View>
@@ -113,9 +124,13 @@ const DriverEarningsScreen = () => {
         </View>
 
         <View style={styles.transactionsList}>
-           <TransactionItem name="أحمد ب." date="اليوم • 14:30" amount="1,250" />
-           <TransactionItem name="سارة ك." date="أمس • 11:15" amount="850" />
-           <TransactionItem name="مريم ل." date="23 أفريل • 16:45" amount="2,100" />
+           {transactions.length === 0 ? (
+             <Text style={{ textAlign: 'center', color: COLORS.textSecondary, marginTop: 20, fontFamily: 'Cairo-Regular' }}>لا توجد عمليات بعد</Text>
+           ) : (
+             transactions.map((t, idx) => (
+               <TransactionItem key={t.id || idx} name={t.customerName} date={t.date} amount={t.amount.toLocaleString('ar-DZ')} />
+             ))
+           )}
         </View>
       </ScrollView>
     </ScreenContainer>

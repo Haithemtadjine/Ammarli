@@ -17,6 +17,7 @@ import {
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useDriverStore } from '../../src/store/useDriverStore';
 
 const COLORS = {
@@ -42,9 +43,9 @@ export default function OrderAcceptanceScreen() {
   const router = useRouter();
   const updateDriverOrderStatus = useDriverStore(s => s.updateDriverOrderStatus);
 
-  // استقبال بيانات الطلبية من بطاقة الطلب
   const params = useLocalSearchParams<{
     customerName: string;
+    avatarUrl?:   string;
     price:        string;
     address:      string;
     orderType:    string;
@@ -145,10 +146,16 @@ export default function OrderAcceptanceScreen() {
 
           {/* ── بطاقة العميل ── */}
           <View style={styles.customerCard}>
-            <Image 
-               source={{uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'}} 
-               style={styles.avatarImage} 
-            />
+              {params.avatarUrl ? (
+                <Image 
+                  source={{uri: params.avatarUrl as string}} 
+                  style={styles.avatarImage} 
+                />
+              ) : (
+                <View style={[styles.avatarImage, { backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' }]}>
+                  <Ionicons name="person" size={24} color="#64748B" />
+                </View>
+              )}
             <View style={styles.customerInfo}>
               <Text style={styles.statusLabel}>تم قبول طلب جديد</Text>
               <Text style={styles.customerName}>{customerName}</Text>
@@ -212,8 +219,12 @@ export default function OrderAcceptanceScreen() {
             {orderType === 'bottles' && bottleItems.map((item, index) => (
               <View key={item.id}>
                 <View style={styles.itemRowBottles}>
-                  <View style={styles.imageBoxBottles}>
-                    <Image source={{ uri: item.image }} style={styles.productImageBottles} resizeMode="contain" />
+                  <View style={[styles.imageBoxBottles, { backgroundColor: '#F0FDF4' }]}>
+                    {item.image ? (
+                      <Image source={{ uri: item.image }} style={styles.productImageBottles} resizeMode="contain" />
+                    ) : (
+                      <MaterialCommunityIcons name="bottle-wine-outline" size={40} color="#16A34A" />
+                    )}
                   </View>
                   <View style={styles.itemDetailsBottles}>
                     <Text style={styles.itemNameBottles}>{item.name}</Text>

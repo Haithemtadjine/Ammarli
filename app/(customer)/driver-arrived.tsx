@@ -111,19 +111,25 @@ export default function DriverArrivedScreen() {
 
           <View style={styles.driverDetails}>
             <Text style={styles.driverRole}>السائق المحترف</Text>
-            <Text style={styles.driverName}>خالد</Text>
+            <Text style={styles.driverName}>{activeOrder?.driverInfo?.name || 'السائق'}</Text>
             <View style={styles.ratingRow}>
                <Text style={styles.ratingCount}>(2.4k توصيل)</Text>
-               <Text style={styles.ratingScore}>4.9</Text>
+               <Text style={styles.ratingScore}>{activeOrder?.driverInfo?.rating || '4.9'}</Text>
                <Ionicons name="star" color={COLORS.accentYellow} size={12} />
             </View>
           </View>
 
           <View style={styles.avatarWrapper}>
-             <Image 
-               source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80' }} 
-               style={styles.avatarImage} 
-             />
+             {activeOrder?.driverInfo?.avatarUrl ? (
+               <Image 
+                 source={{ uri: activeOrder.driverInfo.avatarUrl }} 
+                 style={styles.avatarImage} 
+               />
+             ) : (
+               <View style={[styles.avatarImage, { backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' }]}>
+                 <Ionicons name="person" size={24} color="#64748B" />
+               </View>
+             )}
              <View style={styles.onlineIndicator} />
           </View>
         </View>

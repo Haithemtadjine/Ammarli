@@ -47,7 +47,7 @@ export default function CustomerRatingScreen() {
   const router = useRouter();
   const completeDriverOrder = useDriverStore(s => s.completeDriverOrder);
 
-  const params = useLocalSearchParams<{ customerName: string; price: string }>();
+  const params = useLocalSearchParams<{ customerName: string; price: string; avatarUrl: string }>();
   const customerName = params.customerName ?? 'الزبون';
   const priceValue = Number(params.price ?? 2500);
 
@@ -70,8 +70,8 @@ export default function CustomerRatingScreen() {
   };
 
   const finishProcess = () => {
-    // إنهاء الرحلة وتسجيل الأرباح (خصم 1000 لتر كمثال ثابت للطلبية حالياً)
-    completeDriverOrder(1000);
+    // إنهاء الرحلة وتسجيل الأرباح
+    completeDriverOrder();
     router.replace('/(driver)/(tabs)' as any);
   };
 
@@ -127,10 +127,16 @@ export default function CustomerRatingScreen() {
             {/* ── بطاقة الزبون ── */}
             <View style={styles.customerCard}>
               <View style={styles.avatarWrapper}>
-                <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150' }}
-                  style={styles.avatar}
-                />
+                {params.avatarUrl ? (
+                  <Image
+                    source={{ uri: params.avatarUrl as string }}
+                    style={styles.avatar}
+                  />
+                ) : (
+                  <View style={[styles.avatar, { backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' }]}>
+                    <Ionicons name="person" size={24} color="#64748B" />
+                  </View>
+                )}
               </View>
               <Text style={styles.customerName}>{customerName}</Text>
               <Text style={styles.questionText}>كيف كانت تجربتك مع هذا الزبون؟</Text>

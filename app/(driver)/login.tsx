@@ -11,19 +11,25 @@ import {
   ScrollView,
   Alert,
   TextInput,
-  BackHandler
+  BackHandler,
+  Animated,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuthStore } from '../../src/store/useAuthStore';
+import AmmarliInput from '../../components/AmmarliInput';
 
 const COLORS = {
-  primary: '#002147',
-  secondary: '#FFCC00',
-  white: '#FFFFFF',
-  textSecondary: '#9CA3AF',
-  inputBg: '#F8FAFC',
+  primary:       '#003366',
+  secondary:     '#F3CD0D',
+  white:         '#FFFFFF',
+  background:    '#F8FAFC',
+  inputBg:       '#F1F5F9',
+  textSecondary: '#64748B',
+  border:        '#E2E8F0',
+  error:         '#E53935',
 };
 
 const DriverLoginScreen = () => {
@@ -31,7 +37,8 @@ const DriverLoginScreen = () => {
   const router = useRouter();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [passError, setPassError] = useState('');
   const [loading, setLoading] = useState(false);
   const passwordRef = useRef<TextInput>(null);
 
@@ -47,20 +54,51 @@ const DriverLoginScreen = () => {
     }, [])
   );
 
-  const handleLogin = async () => {
-    setError('');
+  const shakeAnim = useRef(new Animated.Value(0)).current;
+  const shake = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnim, { toValue: 8,  duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -8, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 6,  duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -6, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0,  duration: 60, useNativeDriver: true }),
+    ]).start();
+  };
 
-    if (!phone || !password) {
-      setError('الرجاء إدخال جميع البيانات');
-      return;
+  const validate = (): boolean => {
+    let valid = true;
+    setPhoneError('');
+    setPassError('');
+
+    if (!phone.trim()) {
+      setPhoneError('رقم الهاتف مطلوب');
+      valid = false;
+    } else if (!/^0\d{9}$/.test(phone.trim())) {
+      setPhoneError('أدخل رقم هاتف صحيح (10 أرقام يبدأ بـ 0)');
+      valid = false;
     }
 
+    if (!password) {
+      setPassError('كلمة المرور مطلوبة');
+      valid = false;
+    } else if (password.length < 6) {
+      setPassError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      valid = false;
+    }
+
+    if (!valid) shake();
+    return valid;
+  };
+
+  const handleLogin = async () => {
+    if (!validate()) return;
     setLoading(true);
     try {
       await useAuthStore.getState().login(phone, password);
       router.replace('/(driver)/(tabs)' as any);
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'كلمة المرور غير صحيحة');
+      setPassError(e?.response?.data?.message || 'فشل تسجيل الدخول. تحقق من بياناتك.');
+      shake();
     } finally {
       setLoading(false);
     }
@@ -69,7 +107,7 @@ const DriverLoginScreen = () => {
   const FormContent = (
     <View style={styles.contentWrapper}>
       {/* Top Logo */}
-      <View style={styles.logoContainer}>
+      <View style={[styles.logoContainer, { marginTop: insets.top > 0 ? insets.top : 20 }]}>
         <Text style={styles.logoText}>AMMARLI</Text>
       </View>
 
@@ -89,72 +127,74 @@ const DriverLoginScreen = () => {
       </View>
 
       {/* Form */}
-      <View style={styles.formContainer}>
+      <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
         
         {/* Phone Input */}
-        <View style={styles.inputWrapper}>
-          <Text style={styles.inputLabel}>رقم الهاتف</Text>
-          <View style={styles.inputContainer}>
-            <Ionicons name="phone-portrait-outline" size={20} color={COLORS.primary} style={styles.inputIcon} />
-            <TextInput
-              style={styles.textInput}
-              placeholder="+213 00 00 00 00"
-              placeholderTextColor={COLORS.textSecondary}
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={setPhone}
-              textAlign="right"
-            />
-          </View>
-        </View>
+        <AmmarliInput
+          label="رقم الهاتف"
+          iconName="call-outline"
+          placeholder="05X XXX XXXX"
+          keyboardType="phone-pad"
+          returnKeyType="next"
+          value={phone}
+          error={phoneError}
+          isValid={phone.length === 10}
+          onChangeText={(t) => { setPhone(t); setPhoneError(''); }}
+          onSubmitEditing={() => passwordRef.current?.focus()}
+          blurOnSubmit={false}
+          maxLength={10}
+        />
 
         {/* Password Input */}
-        <View style={[styles.inputWrapper, { marginTop: 20 }]}>
-          <Text style={styles.inputLabel}>كلمة المرور</Text>
-          <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color={COLORS.primary} style={styles.inputIcon} />
-            <TextInput
-              ref={passwordRef}
-              style={styles.textInput}
-              placeholder="••••••••"
-              placeholderTextColor={COLORS.textSecondary}
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              textAlign="right"
-            />
-          </View>
-        </View>
+        <AmmarliInput
+          ref={passwordRef}
+          label="كلمة السر"
+          iconName="lock-closed-outline"
+          placeholder="••••••••"
+          isPassword={true}
+          returnKeyType="done"
+          value={password}
+          error={passError}
+          onChangeText={(t) => { setPassword(t); setPassError(''); }}
+          onSubmitEditing={handleLogin}
+        />
 
         {/* Forgot Password */}
         <TouchableOpacity style={styles.forgotBtn}>
           <Text style={styles.forgotPassText}>نسيت كلمة المرور؟</Text>
         </TouchableOpacity>
 
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
         {/* Login Button */}
         <TouchableOpacity
-          style={styles.loginButton}
+          style={[styles.loginButton, loading && { opacity: 0.75 }]}
           activeOpacity={0.8}
           onPress={handleLogin}
+          disabled={loading}
         >
-          <Text style={styles.loginButtonText}>تسجيل الدخول</Text>
-          <Ionicons name='arrow-forward' size={24} color={COLORS.primary} style={styles.loginArrow} />
+          {loading ? (
+            <ActivityIndicator color={COLORS.primary} size="small" />
+          ) : (
+            <>
+              <Text style={styles.loginButtonText}>تسجيل الدخول</Text>
+              <Ionicons name='arrow-back' size={22} color={COLORS.primary} style={{ marginStart: 12 }} />
+            </>
+          )}
         </TouchableOpacity>
+      </Animated.View>
 
-        {/* Sign Up Link */}
-        <TouchableOpacity
-          style={[styles.signUpLink, { marginTop: 25 }]}
-          onPress={() => router.push('/(driver)/register')}
-        >
-          <Text style={styles.signUpText}>
-            ليس لديك حساب؟{' '}
-            <Text style={styles.signUpBold}>إنشاء حساب جديد</Text>
-          </Text>
-        </TouchableOpacity>
+      {/* Spacer to push signup link to bottom */}
+      <View style={styles.spacer} />
 
-      </View>
+      {/* Sign Up Link */}
+      <TouchableOpacity
+        style={styles.signUpLink}
+        onPress={() => router.push('/(driver)/register')}
+      >
+        <Text style={styles.signUpText}>
+          ليس لديك حساب؟{' '}
+          <Text style={styles.signUpBold}>إنشاء حساب جديد</Text>
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -188,46 +228,26 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 22, fontFamily: 'Cairo-Bold', color: COLORS.primary },
 
   greetingSection: { alignItems: 'center', marginBottom: 40 },
-  title: { fontSize: 26, fontFamily: 'Cairo-Bold', color: COLORS.primary, marginBottom: 8 },
-  subtitle: { fontSize: 15, fontFamily: 'Cairo-Regular', color: COLORS.textSecondary },
+  title: { fontSize: 26, fontFamily: 'Cairo-Bold', color: COLORS.primary, marginBottom: 8, textAlign: 'center' },
+  subtitle: { fontSize: 15, fontFamily: 'Cairo-Regular', color: COLORS.textSecondary, textAlign: 'center' },
 
-  formContainer: { width: '100%' },
-
-  inputWrapper: { width: '100%' },
-  inputLabel: { fontSize: 15, fontFamily: 'Cairo-Bold', color: COLORS.primary, textAlign: 'left', marginBottom: 8 },
-  inputContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 16, 
-    paddingHorizontal: 18, 
-    height: 60 
-  },
-  textInput: { flex: 1, fontSize: 16, color: COLORS.primary, fontFamily: 'Cairo-Regular', textAlign: 'left' },
-  inputIcon: { marginRight: 12 },
-
-  forgotBtn: { alignSelf: 'flex-end', marginTop: 15 },
+  forgotBtn: { alignSelf: 'flex-start', marginTop: 12 },
   forgotPassText: { fontSize: 14, fontFamily: 'Cairo-Bold', color: COLORS.primary },
-
-  errorText: {
-    color: '#EF4444',
-    fontFamily: 'Cairo-Bold',
-    fontSize: 13,
-    textAlign: 'center',
-    marginTop: 15,
-  },
 
   loginButton: {
     flexDirection: 'row', 
-    height: 60, 
+    height: 64, 
     backgroundColor: COLORS.secondary,
-    borderRadius: 30, 
+    borderRadius: 32, 
     justifyContent: 'center', 
     alignItems: 'center',
-    marginTop: 40,
-    position: 'relative',
+    marginTop: 16,
+    shadowColor: COLORS.secondary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.35,
+    shadowRadius: 15,
+    elevation: 8,
   },
-  loginArrow: { position: 'absolute', left: 24 },
   loginButtonText: { fontSize: 18, fontFamily: 'Cairo-Bold', color: COLORS.primary },
 
   spacer: { flex: 1, minHeight: 40 },

@@ -52,6 +52,7 @@ export default function OrderDetailsScreen() {
     orderNumber:  string;
     customerLat:  string;
     customerLng:  string;
+    avatarUrl:    string;
   }>();
 
   const customerName = params.customerName ?? 'الزبون';
@@ -197,10 +198,16 @@ export default function OrderDetailsScreen() {
           <Text style={styles.sectionHeader}>معلومات العميل</Text>
           <View style={styles.infoCard}>
             <View style={styles.customerRow}>
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' }}
-                style={styles.avatar}
-              />
+              {params.avatarUrl ? (
+                <Image
+                  source={{ uri: params.avatarUrl as string }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <View style={[styles.avatar, { backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' }]}>
+                  <Ionicons name="person" size={24} color="#64748B" />
+                </View>
+              )}
               <View style={styles.customerInfo}>
                 <Text style={styles.customerName}>{customerName}</Text>
                 <Text style={styles.customerPhone}>+213 555 12 34 56</Text>

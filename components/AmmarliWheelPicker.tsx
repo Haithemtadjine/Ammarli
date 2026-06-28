@@ -76,6 +76,7 @@ const PickerColumn = memo(({ data, label, flex = 1, selectedValue, onValueChange
     </View>
   );
 });
+PickerColumn.displayName = 'PickerColumn';
 
 const DAYS = Array.from({ length: 31 }, (_, i) => `${i + 1}`);
 const MONTHS = ['أفريل', 'ماي', 'جوان', 'جويلية', 'أوت', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر', 'جانفي', 'فيفري', 'مارس'];

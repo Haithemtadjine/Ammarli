@@ -43,8 +43,6 @@ export default function CustomerLoginScreen() {
   const insets = useSafeAreaInsets();
   const router      = useRouter();
   
-  const setUserRole = useAuthStore((s) => s.setUserRole);
-
   const [phone,       setPhone]       = useState('');
   const [password,    setPassword]    = useState('');
   const [showPass,    setShowPass]    = useState(false);
@@ -139,13 +137,20 @@ export default function CustomerLoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* ── Welcome Header ────────────────────────────────────────────── */}
-          <View style={styles.welcomeSection}>
-            <View style={{ flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-              <TouchableOpacity onPress={() => router.replace('/role-selection')} style={{ marginLeft: 15 }}>
-                <Ionicons name="arrow-forward" size={32} color={COLORS.primary} />
-              </TouchableOpacity>
-              <Text style={[styles.title, { marginBottom: 0 }, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>مرحباً بك مجدداً</Text>
-            </View>
+          <View style={[styles.logoContainer, { marginTop: insets.top > 0 ? insets.top : 20 }]}>
+            <Text style={styles.logoText}>AMMARLI</Text>
+          </View>
+
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.replace('/role-selection')}>
+              <Ionicons name='chevron-forward' size={28} color={COLORS.primary} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>تسجيل دخول العميل</Text>
+            <View style={{ width: 44 }} />
+          </View>
+
+          <View style={styles.greetingSection}>
+            <Text style={styles.title}>مرحباً بك مجدداً</Text>
             <Text style={styles.subtitle}>سجل دخولك لطلب المياه بسرعة وسهولة</Text>
           </View>
 
@@ -202,7 +207,7 @@ export default function CustomerLoginScreen() {
               ) : (
                 <>
                   <Text style={styles.loginButtonText}>تسجيل الدخول</Text>
-                  <Ionicons name='arrow-back' size={22} color={COLORS.primary} style={{ marginRight: 8 }} />
+                  <Ionicons name='arrow-back' size={22} color={COLORS.primary} style={{ marginStart: 12 }} />
                 </>
               )}
             </TouchableOpacity>
@@ -239,25 +244,27 @@ const styles = StyleSheet.create({
     paddingTop: 48,
   },
 
-  // Welcome
-  welcomeSection: {
-    marginBottom: 48,
-    alignItems: 'center',
-  },
+  // Header & Welcome
+  logoContainer: { alignItems: 'center', marginBottom: 30 },
+  logoText: { fontSize: 18, fontFamily: 'Cairo-Bold', color: COLORS.primary, letterSpacing: 4 },
+
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 30 },
+  backButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 22, fontFamily: 'Cairo-Bold', color: COLORS.primary },
+
+  greetingSection: { alignItems: 'center', marginBottom: 40 },
   title: {
     fontFamily: 'Cairo-Bold',
-    fontSize: 34,
+    fontSize: 26,
     color: COLORS.primary,
     textAlign: 'center',
-    marginBottom: 12,
-    letterSpacing: -0.5,
+    marginBottom: 8,
   },
   subtitle: {
     fontFamily: 'Cairo-Regular',
-    fontSize: 16,
+    fontSize: 15,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    lineHeight: 26,
   },
 
   // Removed old inline input styles (handled by AmmarliInput)
@@ -272,7 +279,7 @@ const styles = StyleSheet.create({
 
   // Login button
   loginButton: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     height: 64,
     backgroundColor: COLORS.secondary,
     borderRadius: 32,

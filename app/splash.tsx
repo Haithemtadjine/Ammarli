@@ -32,9 +32,11 @@ export default function SplashScreen() {
       // Determine target route
       const target = !role
         ? '/role-selection'
-        : role === 'CUSTOMER'
+        : role === 'CLIENT'
           ? '/(customer)/(tabs)/'
-          : '/(driver)/(tabs)/';
+          : role === 'DRIVER'
+            ? '/(driver)/(tabs)/'
+            : '/role-selection'; // ADMIN or unknown → let them choose
 
       // If navigator is already mounted → navigate immediately.
       if (rootNavState?.key) {

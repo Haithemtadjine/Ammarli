@@ -1,6 +1,5 @@
-// Driver Stack Layout — with AppState-based background notification triggers
 import { Stack } from 'expo-router';
-import { I18nManager, AppState, AppStateStatus } from 'react-native';
+import { I18nManager, AppState, AppStateStatus, View } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { useDriverStore } from '../../src/store/useDriverStore';
 import * as Notifications from 'expo-notifications';
@@ -10,6 +9,7 @@ import {
 } from '../../src/services/notificationService';
 import { useAuthStore } from '../../src/store/useAuthStore';
 import { socketService } from '../../src/services/socket';
+import OfflineBar from '../../components/OfflineBar';
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -99,26 +99,29 @@ export default function DriverLayout() {
   }, []);
 
   return (
-    <Stack screenOptions={{ headerShown: false, animation: 'slide_from_left' }}>
-      {/* Full-screen overlay for incoming new orders — covers lock screen */}
-      <Stack.Screen
-        name="incoming-order"
-        options={{
-          presentation:  'fullScreenModal',
-          headerShown:   false,
-          animation:     'fade',
-          gestureEnabled: false,  // Prevent swipe-dismiss
-        }}
-      />
-      <Stack.Screen
-        name="customer-rating"
-        options={{
-          presentation: 'transparentModal',
-          headerShown: false,
-          animation: 'fade',
-        }}
-      />
-    </Stack>
+    <View style={{ flex: 1 }}>
+      <OfflineBar />
+      <Stack screenOptions={{ headerShown: false, animation: 'slide_from_left' }}>
+        {/* Full-screen overlay for incoming new orders — covers lock screen */}
+        <Stack.Screen
+          name="incoming-order"
+          options={{
+            presentation:  'fullScreenModal',
+            headerShown:   false,
+            animation:     'fade',
+            gestureEnabled: false,  // Prevent swipe-dismiss
+          }}
+        />
+        <Stack.Screen
+          name="customer-rating"
+          options={{
+            presentation: 'transparentModal',
+            headerShown: false,
+            animation: 'fade',
+          }}
+        />
+      </Stack>
+    </View>
   );
 }
 

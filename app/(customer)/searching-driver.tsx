@@ -67,7 +67,9 @@ export default function SearchingDriverScreen() {
 
   useEffect(() => {
     // Navigate to tracking once a driver is found (socket updates activeOrder)
-    if (activeOrder && (activeOrder.status === 'dispatched' || activeOrder.status === 'accepted' || activeOrder.status === 'in_progress')) {
+    // Backend emits: accepted, dispatched (legacy), delivering
+    const driverFoundStatuses = ['accepted', 'dispatched', 'delivering', 'arrived'];
+    if (activeOrder && driverFoundStatuses.includes(activeOrder.status)) {
       router.replace('/(customer)/order-tracking');
     }
   }, [activeOrder?.status, router]);

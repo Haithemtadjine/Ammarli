@@ -1,7 +1,7 @@
 // Customer Stack Layout
 // All screens inside (customer)/ share this layout
 import { Stack } from 'expo-router';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, View } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { useCustomerStore } from '../../src/store/useCustomerStore';
 import {
@@ -10,6 +10,7 @@ import {
 } from '../../src/services/notificationService';
 import * as Notifications from 'expo-notifications';
 import { socketService } from '../../src/services/socket';
+import OfflineBar from '../../components/OfflineBar';
 
 export default function CustomerLayout() {
   const appState = useRef<AppStateStatus>(AppState.currentState);
@@ -72,7 +73,9 @@ export default function CustomerLayout() {
   }, []);
 
   return (
-    <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+    <View style={{ flex: 1 }}>
+      <OfflineBar />
+      <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
       <Stack.Screen name="login"            options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="register"         options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="forgot-password"  options={{ animation: 'slide_from_bottom' }} />
@@ -87,5 +90,6 @@ export default function CustomerLayout() {
       <Stack.Screen name="cancel-order"     options={{ animation: 'slide_from_bottom', headerShown: false }} />
       <Stack.Screen name="(tabs)"           options={{ animation: 'fade' }} />
     </Stack>
+    </View>
   );
 }

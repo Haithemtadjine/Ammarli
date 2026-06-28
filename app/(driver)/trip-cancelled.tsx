@@ -66,7 +66,7 @@ export default function TripCancelledScreen() {
               <Ionicons name="information-circle-outline" size={20} color={COLORS.textSecondary} />
               <Text style={styles.reasonTitle}>سبب الإلغاء</Text>
             </View>
-            <Text style={styles.reasonText}>"{cancelReason}"</Text>
+            <Text style={styles.reasonText}>&quot;{cancelReason}&quot;</Text>
           </View>
           
           {/* Illustration image (optional) */}

@@ -28,19 +28,17 @@ const AmmarliInput = forwardRef<TextInput, AmmarliInputProps>((props, ref) => {
     <View style={styles.inputWrapper}>
       <Text style={styles.inputLabel}>{label}</Text>
       <View style={[styles.inputContainer, !!error && styles.inputError]}>
+        {/* Right Side (Start in RTL): Main Icon */}
+        <Ionicons name={iconName} size={20} color={COLORS.primary} style={styles.mainIcon} />
         
-        {/* Text Input */}
+        {/* Left Side (End in RTL): Text Input */}
         <TextInput
           ref={ref}
           style={styles.input}
           placeholderTextColor="#94A3B8"
           secureTextEntry={isPassword}
-          textAlign="right"
           {...textInputProps}
         />
-
-        {/* Right Side (End): Main Icon */}
-        <Ionicons name={iconName} size={20} color={COLORS.primary} style={styles.mainIcon} />
       </View>
       {!!error && <Text style={styles.errorText}>{error}</Text>}
     </View>
@@ -48,13 +46,14 @@ const AmmarliInput = forwardRef<TextInput, AmmarliInputProps>((props, ref) => {
 });
 
 export default AmmarliInput;
+AmmarliInput.displayName = 'AmmarliInput';
 
 const styles = StyleSheet.create({
   inputWrapper: { marginBottom: 20 },
-  inputLabel: { fontFamily: 'Cairo-Bold', fontSize: 14, color: COLORS.primary, marginBottom: 8, textAlign: 'right' },
-  inputContainer: { flexDirection: 'row-reverse', height: 60, backgroundColor: COLORS.inputBg, borderRadius: 16, alignItems: 'center', paddingHorizontal: 15 },
+  inputLabel: { fontFamily: 'Cairo-Bold', fontSize: 14, color: COLORS.primary, marginBottom: 8 },
+  inputContainer: { flexDirection: 'row', height: 60, backgroundColor: COLORS.inputBg, borderRadius: 16, alignItems: 'center', paddingHorizontal: 15 },
   inputError: { borderWidth: 1, borderColor: COLORS.error },
-  input: { flex: 1, fontFamily: 'Cairo-Regular', fontSize: 16, color: COLORS.primary },
-  mainIcon: { marginLeft: 10 },
-  errorText: { fontFamily: 'Cairo-Regular', fontSize: 12, color: COLORS.error, marginTop: 4, textAlign: 'right' },
+  input: { flex: 1, fontFamily: 'Cairo-Regular', fontSize: 16, color: COLORS.primary, textAlign: 'left' },
+  mainIcon: { marginEnd: 10 },
+  errorText: { fontFamily: 'Cairo-Regular', fontSize: 12, color: COLORS.error, marginTop: 4 },
 });

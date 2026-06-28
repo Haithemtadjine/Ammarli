@@ -47,8 +47,7 @@ export default function CustomerRegisterScreen() {
   const insets = useSafeAreaInsets();
   const router      = useRouter();
   
-  const setUserRole = useAuthStore((s) => s.setUserRole);
-  const setProfile  = useAuthStore((s) => s.setUserProfile);
+  // register() in useAuthStore sets role + profile automatically
 
   const [name,        setName]        = useState('');
   const [phone,       setPhone]       = useState('');
@@ -144,12 +143,16 @@ export default function CustomerRegisterScreen() {
     <ScreenContainer style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={C.white} />
 
-      {/* ── Header ────────────────────────────────────────────────────────── */}
-      <View style={[styles.header, { paddingTop: insets.top > 0 ? 0 : 12 }, { paddingBottom: insets.bottom }]}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()}>
-          <Ionicons name='arrow-forward' size={24} color={C.primary} />
+      {/* ── Welcome Header ────────────────────────────────────────────── */}
+      <View style={[styles.logoContainer, { marginTop: insets.top > 0 ? insets.top : 20 }]}>
+        <Text style={styles.logoText}>AMMARLI</Text>
+      </View>
+
+      <View style={styles.headerRow}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name='chevron-forward' size={28} color={C.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>إنشاء حساب جديد</Text>
+        <Text style={styles.headerTitle}>إنشاء حساب عميل</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -251,7 +254,6 @@ export default function CustomerRegisterScreen() {
               {!!wilayaErr && <Text style={styles.errText}>{wilayaErr}</Text>}
             </View>
 
-            {/* ── Register Button ───────────────────────────────────────────── */}
             <TouchableOpacity
               style={[styles.regBtn, loading && { opacity: 0.75 }]}
               onPress={handleRegister}
@@ -263,7 +265,7 @@ export default function CustomerRegisterScreen() {
               ) : (
                 <>
                   <Text style={styles.regText}>إنشاء حساب</Text>
-                  <Ionicons name='arrow-back' size={22} color={C.primary} style={{ marginRight: 8 }} />
+                  <Ionicons name='arrow-back' size={22} color={C.primary} style={{ marginStart: 12 }} />
                 </>
               )}
             </TouchableOpacity>
@@ -346,34 +348,28 @@ const styles = StyleSheet.create({
   safe:  { flex: 1, backgroundColor: C.white },
   flex:  { flex: 1 },
 
-  // Header
-  header: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    height: 60,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-  },
-  headerTitle: { fontFamily: 'Cairo-Bold', fontSize: 16, color: C.primary },
-  iconBtn: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  // Header & Welcome
+  logoContainer: { alignItems: 'center', marginBottom: 20 },
+  logoText: { fontSize: 18, fontFamily: 'Cairo-Bold', color: C.primary, letterSpacing: 4 },
+
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 10 },
+  backButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 20, fontFamily: 'Cairo-Bold', color: C.primary },
 
   // Scroll
-  scroll: { flexGrow: 1, paddingHorizontal: 28, paddingTop: 32 },
+  scroll: { flexGrow: 1, paddingHorizontal: 28, paddingTop: 10 },
   mainTitle: {
     fontFamily: 'Cairo-Bold',
-    fontSize: 32,
+    fontSize: 26,
     color: C.primary,
     textAlign: 'center',
-    marginBottom: 36,
-    letterSpacing: -0.5,
+    marginBottom: 30,
   },
 
   // Input
-  label: { fontFamily: 'Cairo-Bold', fontSize: 13, color: C.primary, marginBottom: 8, textAlign: 'right', opacity: 0.85 },
+  label: { fontFamily: 'Cairo-Bold', fontSize: 13, color: C.primary, marginBottom: 8, opacity: 0.85 },
   inputBox: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     height: 64,
     backgroundColor: C.white,
     borderRadius: 32,
@@ -395,22 +391,21 @@ const styles = StyleSheet.create({
     fontFamily: 'Cairo-Regular',
     fontSize: 16,
     color: C.primary,
-    textAlign: 'right',
-    paddingRight: 12,
+    textAlign: 'left',
   },
-  icon: { marginLeft: 4 },
-  eye:  { marginRight: 4, padding: 4 },
-  errText: { fontFamily: 'Cairo-Regular', fontSize: 12, color: C.error, marginTop: 5, textAlign: 'right' },
+  icon: { marginEnd: 10 },
+  eye:  { marginStart: 10, padding: 4 },
+  errText: { fontFamily: 'Cairo-Regular', fontSize: 12, color: C.error, marginTop: 5 },
 
   // Strength bar
-  strRow:   { flexDirection: 'row-reverse', alignItems: 'center', marginTop: 8, gap: 8 },
+  strRow:   { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8 },
   strTrack: { flex: 1, height: 4, backgroundColor: '#E5E7EB', borderRadius: 2, overflow: 'hidden' },
   strFill:  { height: '100%', borderRadius: 2 },
-  strLabel: { fontFamily: 'Cairo-Regular', fontSize: 11, minWidth: 36, textAlign: 'right' },
+  strLabel: { fontFamily: 'Cairo-Regular', fontSize: 11, minWidth: 36 },
 
   // Register button
   regBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     height: 64,
     backgroundColor: C.secondary,
     borderRadius: 32,
@@ -444,7 +439,7 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   modalHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -454,7 +449,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: { fontFamily: 'Cairo-Bold', fontSize: 18, color: C.primary },
   searchBox: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F1F5F9',
     borderRadius: 16,
@@ -465,12 +460,12 @@ const styles = StyleSheet.create({
   },
   searchInput: { flex: 1, fontFamily: 'Cairo-Regular', fontSize: 15, color: C.primary, paddingRight: 8 },
   wilayaItem: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 14,
   },
   wilayaSelected: { backgroundColor: '#FFFBEA' },
-  wilayaText: { fontFamily: 'Cairo-Regular', fontSize: 16, color: C.primary, flex: 1, textAlign: 'right' },
+  wilayaText: { fontFamily: 'Cairo-Regular', fontSize: 16, color: C.primary, flex: 1, textAlign: 'left' },
   wilayaTextSelected: { fontFamily: 'Cairo-Bold', color: C.primary },
 });

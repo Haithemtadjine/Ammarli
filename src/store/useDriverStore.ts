@@ -4,6 +4,7 @@
 
 import { create } from 'zustand';
 import { api } from '../services/api';
+import * as Location from 'expo-location';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -15,6 +16,7 @@ export interface RegisteredDriver {
   name: string;
   phone: string;
   password?: string;
+  avatarUrl?: string;
   truckPlate: string;
   driverType: DriverType;
   waterType?: string;
@@ -120,6 +122,7 @@ interface DriverState {
   updateDriverProfile: (name: string, phone: string) => void;
   updatePassword: (newPassword: string) => void;
   fetchDriverProfile: () => Promise<void>;
+  fetchPastTrips: () => Promise<void>;
   updateDriverLocation: (lat: number, lng: number) => void;
 
   markAllNotificationsAsRead: () => void;
@@ -140,6 +143,11 @@ interface DriverState {
   
   handleSocketDispatch: (payload: any) => void;
   handleSocketCancel: () => void;
+
+  // ── Location tracking ──────────────────────────────────────────────────────
+  startLocationTracking: () => Promise<void>;
+  stopLocationTracking: () => void;
+  _locationSubscription: Location.LocationSubscription | null;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -184,32 +192,8 @@ export const useDriverStore = create<DriverState>((set, get) => ({
 
   inventory: INITIAL_INVENTORY,
 
-  notifications: [
-    {
-      id: '1',
-      title: 'طلب مجدول متاح!',
-      description: 'هناك طلب مجدول للغد يطابق منطقتك، هل ترغب في قبوله مبكراً؟',
-      time: 'منذ دقيقتين',
-      isRead: false,
-      type: 'schedule',
-    },
-    {
-      id: '2',
-      title: 'خصم العمولة',
-      description: 'تم خصم 250 د.ج كعمولة من رحلتك الأخيرة.',
-      time: 'منذ ساعة',
-      isRead: false,
-      type: 'fee',
-    },
-    {
-      id: '3',
-      title: 'تم شحن المحفظة',
-      description: 'تم إضافة 5000 د.ج إلى محفظتك بنجاح.',
-      time: 'أمس',
-      isRead: true,
-      type: 'wallet',
-    },
-  ],
+  notifications: [],
+  // NOTE: Real notifications are pushed by backend via FCM/APNs
 
   // ── Notifications Actions ──────────────────────────────────────────────────
   markAllNotificationsAsRead: () =>
@@ -263,21 +247,61 @@ export const useDriverStore = create<DriverState>((set, get) => ({
     try {
       const res = await api.get('/drivers/me');
       if (res.data) {
+        const d = res.data;
         set({
           registeredDriver: {
-            name: `${res.data.user?.firstName || ''} ${res.data.user?.lastName || ''}`.trim() || 'السائق',
-            phone: res.data.user?.phone || '',
-            truckPlate: res.data.truckPlate || '12345-112-16',
-            capacity: res.data.capacity || 5000,
-            waterType: res.data.waterType || 'spring',
-            driverType: res.data.type === 'TANKER' ? 'Tanker' : 'Bottled',
-            brands: res.data.inventory ? Object.keys(res.data.inventory) : ['Ifri', 'Guedila'],
-            location: { lat: 36.752887, lng: 3.042048 },
+            name:       `${d.user?.firstName || ''} ${d.user?.lastName || ''}`.trim() || 'السائق',
+            phone:      d.user?.phone || '',
+            truckPlate: d.truckPlate || '',
+            capacity:   d.capacity || 5000,
+            waterType:  d.waterType || 'spring',
+            driverType: d.type === 'TANKER' ? 'Tanker' : 'Bottled',
+            brands:     d.inventory ? Object.keys(d.inventory) : ['Ifri', 'Guedila'],
+            location:   { lat: 36.752887, lng: 3.042048 },
           },
         });
       }
     } catch (e) {
       console.error('Failed to fetch driver profile:', e);
+    }
+
+    // Also load financial stats if endpoint available
+    try {
+      const stats = await api.get('/drivers/me/stats');
+      if (stats.data) {
+        set({
+          totalEarnings:  stats.data.totalEarnings  ?? 0,
+          walletBalance:  stats.data.walletBalance   ?? 0,
+          completedTrips: stats.data.completedTrips  ?? 0,
+          driverRating:   stats.data.averageRating   ?? 4.9,
+          appCommission:  stats.data.totalCommission ?? 0,
+        });
+      }
+    } catch {
+      // Stats endpoint may not exist yet — silently skip
+    }
+  },
+
+  fetchPastTrips: async () => {
+    try {
+      // Backend RequestController returns paginated requests. We can map them to PastTrip interface
+      const res = await api.get('/requests?limit=20');
+      if (res.data?.data) {
+        const fetchedTrips: PastTrip[] = res.data.data.map((req: any) => ({
+          id: req.id,
+          date: new Date(req.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
+          time: new Date(req.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          orderSummary: req.bottledItems ? Object.keys(req.bottledItems).join(', ') : 'Delivery',
+          customerName: req.user ? `${req.user.firstName} ${req.user.lastName}`.trim() : 'Customer',
+          deliveryType: req.type === 'BOTTLED' ? 'Bottled Water' : 'Tanker Delivery',
+          amount: req.totalPrice || 0,
+          status: req.status === 'CANCELLED' ? 'Cancelled' : 'Completed',
+          cancelReason: req.cancelReason
+        }));
+        set({ pastTrips: fetchedTrips });
+      }
+    } catch (e) {
+      console.error('Failed to fetch past trips:', e);
     }
   },
 
@@ -513,4 +537,43 @@ export const useDriverStore = create<DriverState>((set, get) => ({
 
   // ── Trip Flow Management ────────────────────────────────────────────────
   setDriverBusy: (isBusy) => set({ driverStatus: isBusy ? 'BUSY' : 'AVAILABLE' }),
+
+  // ── Location Tracking ──────────────────────────────────────────────────
+  _locationSubscription: null,
+
+  startLocationTracking: async () => {
+    // Avoid double-starting
+    if (useDriverStore.getState()._locationSubscription) return;
+
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      console.warn('[Location] Permission denied');
+      return;
+    }
+
+    const subscription = await Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.Balanced,
+        timeInterval: 5000,   // emit every 5 s
+        distanceInterval: 10, // or when moved 10 m
+      },
+      async (loc) => {
+        const { lat, lng } = { lat: loc.coords.latitude, lng: loc.coords.longitude };
+        // Update local store
+        useDriverStore.getState().updateDriverLocation(lat, lng);
+      }
+    );
+
+    useDriverStore.setState({ _locationSubscription: subscription });
+    console.log('[Location] Tracking started');
+  },
+
+  stopLocationTracking: () => {
+    const sub = useDriverStore.getState()._locationSubscription;
+    if (sub) {
+      sub.remove();
+      useDriverStore.setState({ _locationSubscription: null });
+      console.log('[Location] Tracking stopped');
+    }
+  },
 }));

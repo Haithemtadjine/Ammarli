@@ -1,13 +1,16 @@
 import axios from 'axios';
 import { storage, STORAGE_KEYS } from '../utils/storage';
 
-const API_URL = 'http://192.168.1.2:3000/api/v1';
+// Use EXPO_PUBLIC_API_URL from .env — fallback to localhost for web/dev
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+const API_URL = `${BASE_URL}/api/v1`;
 
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 15000,
 });
 
 api.interceptors.request.use(async (config) => {

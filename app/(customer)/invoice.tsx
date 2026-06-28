@@ -35,8 +35,8 @@ export default function InvoiceScreen() {
     { brand: 'Guedila', size: '1.5L', qty: 2, unitPrice: 250 },
   ];
 
-  const invoiceNumber = `INV-${Math.floor(1000 + Math.random() * 9000)}`;
-  const driverName = "خالد";
+  const invoiceNumber = activeOrder ? `INV-${activeOrder.id.toString().substring(0, 6).toUpperCase()}` : `INV-${Math.floor(1000 + Math.random() * 9000)}`;
+  const driverName = activeOrder?.driverInfo?.name || "السائق";
   const deliveryFee = 0;
 
   const currentDate = new Date().toLocaleDateString('ar-EG', {

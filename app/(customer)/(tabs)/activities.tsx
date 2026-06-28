@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Calendar, Phone, Star, Truck, X } from 'lucide-react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useCustomerStore, ScheduledOrder, DriverInfo } from '../../../src/store/useCustomerStore';
 import { SkeletonList } from '../../../components/SkeletonLoader';
@@ -98,11 +99,11 @@ const ScheduledOrderCard = React.memo(({ status = 'pending', orderData, onCardPr
           {/* Product Icon & Title (Right - RTL) */}
           <View style={styles.productRow}>
              <Text style={styles.productTitle}>{orderData.title}</Text>
-             <View style={styles.iconContainer}>
-               <Image 
-                 source={{ uri: orderData.iconUri }} 
-                 style={styles.productIcon} 
-                 resizeMode="contain"
+             <View style={[styles.iconContainer, { justifyContent: 'center', alignItems: 'center' }]}>
+               <MaterialCommunityIcons 
+                 name={orderData.iconName || 'bottle-wine-outline'} 
+                 size={32} 
+                 color={THEME_NAVY}
                />
              </View>
           </View>
@@ -156,9 +157,10 @@ const ScheduledOrderCard = React.memo(({ status = 'pending', orderData, onCardPr
     </Animated.View>
   );
 });
+ScheduledOrderCard.displayName = 'ScheduledOrderCard';
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
-const EmptyActivities = React.memo(({ onPress }: { onPress: () => void }) => (
+const EmptyActivities = React.memo(({ onPress, title, subtitle }: { onPress: () => void, title?: string, subtitle?: string }) => (
   <View style={emptyStyles.container}>
     <Svg width={120} height={120} viewBox="0 0 120 120" fill="none">
       <Circle cx="60" cy="60" r="56" fill="#F0F4FF" />
@@ -170,13 +172,14 @@ const EmptyActivities = React.memo(({ onPress }: { onPress: () => void }) => (
       <Line x1="82" y1="74" x2="82" y2="82" stroke="#FFCC00" strokeWidth="2.5" strokeLinecap="round" />
       <Line x1="82" y1="86" x2="82" y2="89" stroke="#FFCC00" strokeWidth="2.5" strokeLinecap="round" />
     </Svg>
-    <Text style={emptyStyles.title}>لا توجد طلبات مجدولة بعد</Text>
-    <Text style={emptyStyles.subtitle}>جدوِّل طلبك الآن لاستقبال مياهك في الوقت المناسب</Text>
+    <Text style={emptyStyles.title}>{title || 'لا توجد طلبات مجدولة بعد'}</Text>
+    <Text style={emptyStyles.subtitle}>{subtitle || 'جدوِّل طلبك الآن لاستقبال مياهك في الوقت المناسب'}</Text>
     <TouchableOpacity style={emptyStyles.ctaButton} onPress={onPress} activeOpacity={0.8}>
       <Text style={emptyStyles.ctaText}>اطلب مياهك الآن</Text>
     </TouchableOpacity>
   </View>
 ));
+EmptyActivities.displayName = 'EmptyActivities';
 
 const emptyStyles = StyleSheet.create({
   container: { alignItems: 'center', justifyContent: 'center', paddingTop: 60, paddingHorizontal: 30 },
@@ -204,28 +207,20 @@ export default function MyActivitiesScreen() {
   }, []);
 
   const fetchPastOrders = useCustomerStore((s) => s.fetchPastOrders);
+  const fetchScheduledOrders = useCustomerStore((s) => s.fetchScheduledOrders);
 
   useFocusEffect(
     useCallback(() => {
       fetchPastOrders();
-    }, [fetchPastOrders])
+      fetchScheduledOrders();
+    }, [fetchPastOrders, fetchScheduledOrders])
   );
 
   // جلب الطلبات من الحالة العامة للطلبات المجدولة والسابقة
   const scheduledOrders = useCustomerStore((s) => s.scheduledOrders);
   const pastOrders = useCustomerStore((s) => s.pastOrders);
   const pastOrdersList = pastOrders.filter(o => o.status === 'delivered' || o.status === 'cancelled');
-
-  const defaultPastOrders = [
-    {
-      id: 1,
-      items: 'مياه معبأة - قديلا: 6x 0.5L, 2x 1.5L, 3x 5L | إفري: 4x 0.5L, 5x 1.5L',
-      time: '09:18 م',
-      price: '4450 د.ج',
-    }
-  ];
-
-  const currentPastList = pastOrdersList.length > 0 ? pastOrdersList : defaultPastOrders;
+  const currentPastList = pastOrdersList;
 
   const openOrderDetails = (order: ScheduledOrder) => {
     setSelectedOrderDetails(order);
@@ -282,6 +277,13 @@ export default function MyActivitiesScreen() {
             )
           ) : (
             // عرض الطلبات السابقة
+            currentPastList.length === 0 ? (
+              <EmptyActivities 
+                onPress={() => router.replace('/(customer)/(tabs)')} 
+                title="لا توجد طلبات سابقة" 
+                subtitle="اطلب مياهك الآن لكي يظهر سجلك هنا"
+              />
+            ) : (
             currentPastList.map((order: any) => {
               const isCancelled = order.status === 'cancelled';
 
@@ -323,6 +325,7 @@ export default function MyActivitiesScreen() {
                 </View>
               );
             })
+            )
           )}
         </ScrollView>
 
